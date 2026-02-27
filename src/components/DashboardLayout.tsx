@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
   Trophy, Clock, Users, Settings, LogOut, Sparkles, 
-  ChevronLeft, Menu, X
+  ChevronLeft, Menu
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "لوحة التحكم", path: "/dashboard" },
@@ -23,6 +23,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "طالب";
 
   const SidebarContent = () => (
     <>
@@ -56,20 +65,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       <div className="p-3 border-t border-sidebar-border space-y-1">
-        <Link
-          to="/dashboard/settings"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent transition-colors"
-        >
-          <Settings className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>الإعدادات</span>}
-        </Link>
-        <Link
-          to="/"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-destructive hover:bg-sidebar-accent transition-colors"
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-destructive hover:bg-sidebar-accent transition-colors"
         >
           <LogOut className="h-5 w-5 shrink-0" />
           {!collapsed && <span>تسجيل الخروج</span>}
-        </Link>
+        </button>
       </div>
     </>
   );
@@ -77,12 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside
-        className={cn(
-          "hidden md:flex flex-col bg-sidebar border-l border-sidebar-border transition-all duration-300",
-          collapsed ? "w-[68px]" : "w-64"
-        )}
-      >
+      <aside className={cn("hidden md:flex flex-col bg-sidebar border-l border-sidebar-border transition-all duration-300 relative", collapsed ? "w-[68px]" : "w-64")}>
         <SidebarContent />
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -104,28 +101,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
         <header className="flex items-center justify-between h-14 px-4 md:px-6 border-b border-border bg-card/50 backdrop-blur-sm shrink-0">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="md:hidden p-2 rounded-lg hover:bg-secondary transition-colors"
-          >
+          <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded-lg hover:bg-secondary transition-colors">
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-                ط
+                {displayName.charAt(0)}
               </div>
-              <span className="hidden sm:inline font-medium">طالب</span>
+              <span className="hidden sm:inline font-medium">{displayName}</span>
             </div>
           </div>
         </header>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
       </main>
     </div>
   );
