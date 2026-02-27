@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Sparkles, Mail, Lock, User, ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(() => {
@@ -14,10 +16,33 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signIn, signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Will be connected to Supabase auth
+    if (!email || !password || (!isLogin && !name)) {
+      toast({ title: "يرجى ملء جميع الحقول", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        if (error) throw error;
+        navigate("/dashboard");
+      } else {
+        const { error } = await signUp(email, password, name);
+        if (error) throw error;
+        toast({ title: "تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتأكيد الحساب." });
+      }
+    } catch (err: any) {
+      toast({ title: err.message || "حدث خطأ", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,13 +80,7 @@ export default function Auth() {
                 <Label htmlFor="name">الاسم الكامل</Label>
                 <div className="relative">
                   <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="name"
-                    placeholder="أدخل اسمك"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pr-10"
-                  />
+                  <Input id="name" placeholder="أدخل اسمك" value={name} onChange={(e) => setName(e.target.value)} className="pr-10" />
                 </div>
               </div>
             )}
@@ -69,44 +88,26 @@ export default function Auth() {
               <Label htmlFor="email">البريد الإلكتروني</Label>
               <div className="relative">
                 <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="example@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pr-10"
-                  dir="ltr"
-                />
+                <Input id="email" type="email" placeholder="example@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pr-10" dir="ltr" />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">كلمة المرور</Label>
               <div className="relative">
                 <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pr-10"
-                  dir="ltr"
-                />
+                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" dir="ltr" />
               </div>
             </div>
 
-            <Button type="submit" variant="hero" className="w-full" size="lg">
+            <Button type="submit" variant="hero" className="w-full" size="lg" disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {isLogin ? "تسجيل الدخول" : "إنشاء حساب"}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {isLogin ? "ليس لديك حساب؟" : "لديك حساب بالفعل؟"}{" "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary font-medium hover:underline"
-            >
+            <button onClick={() => setIsLogin(!isLogin)} className="text-primary font-medium hover:underline">
               {isLogin ? "أنشئ حسابًا" : "سجّل دخولك"}
             </button>
           </p>
@@ -123,12 +124,8 @@ export default function Auth() {
           <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/20 animate-float">
             <Sparkles className="h-10 w-10 text-primary-foreground" />
           </div>
-          <h2 className="text-3xl font-bold text-primary-foreground mb-4">
-            نظام تشغيل متكامل للطالب
-          </h2>
-          <p className="text-primary-foreground/60 leading-relaxed">
-            الفهم، المذاكرة، الاختبار، التحليل، التحفيز، والتنظيم — كل ذلك في مكان واحد
-          </p>
+          <h2 className="text-3xl font-bold text-primary-foreground mb-4">نظام تشغيل متكامل للطالب</h2>
+          <p className="text-primary-foreground/60 leading-relaxed">الفهم، المذاكرة، الاختبار، التحليل، التحفيز، والتنظيم — كل ذلك في مكان واحد</p>
         </div>
       </div>
     </div>
