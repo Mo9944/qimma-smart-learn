@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Brain, FileText, Lightbulb, Map, CreditCard, Loader2, Sparkles } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+
+const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tools`;
 
 const aiTools = [
   { id: "explain", icon: Lightbulb, label: "شرح مبسّط", desc: "تحويل النص إلى شرح واضح ومبسّط" },
@@ -29,20 +29,63 @@ export default function AITools() {
     setLoading(true);
     setOutput("");
 
-    // Simulated AI response - will be connected to real AI API
-    await new Promise(r => setTimeout(r, 1500));
-    
-    const responses: Record<string, string> = {
-      explain: `📖 شرح مبسّط:\n\n${input.slice(0, 100)}...\n\nالفكرة الرئيسية: هذا المفهوم يعتمد على فهم العلاقة بين العناصر المختلفة.\n\n✅ النقاط الأساسية:\n1. الفهم العميق للمبادئ الأساسية\n2. الربط بين المفاهيم المختلفة\n3. التطبيق العملي للمعرفة`,
-      quiz: `📝 أسئلة تلقائية:\n\n1. ما هو المفهوم الرئيسي في هذا الدرس؟\n2. اشرح العلاقة بين العناصر المذكورة.\n3. ما هي الخطوات الأساسية؟\n4. قارن بين المفهومين الرئيسيين.\n5. أعطِ مثالاً عملياً.\n6. ما هي أهمية هذا الموضوع؟\n7. كيف يمكن تطبيق هذا المفهوم؟\n8. ما هي النتائج المتوقعة؟\n9. اذكر ثلاث فوائد.\n10. لخّص الفكرة الرئيسية في جملة واحدة.`,
-      summary: `📋 الملخص:\n\n${input.slice(0, 50)}...\n\nالنقاط الرئيسية:\n• النقطة الأولى: المبادئ الأساسية\n• النقطة الثانية: التطبيقات العملية\n• النقطة الثالثة: النتائج والخلاصة`,
-      mindmap: `🗺️ خريطة ذهنية:\n\n📌 الموضوع الرئيسي\n├── 🔹 الفرع الأول\n│   ├── النقطة 1.1\n│   └── النقطة 1.2\n├── 🔹 الفرع الثاني\n│   ├── النقطة 2.1\n│   └── النقطة 2.2\n└── 🔹 الفرع الثالث\n    ├── النقطة 3.1\n    └── النقطة 3.2`,
-      flashcards: `🎴 فلاش كارد:\n\n━━━━━━━━━━━━━━━\nالبطاقة 1\nالسؤال: ما هو المفهوم الأساسي؟\nالإجابة: هو العلاقة بين العناصر المختلفة\n━━━━━━━━━━━━━━━\nالبطاقة 2\nالسؤال: كيف يتم التطبيق؟\nالإجابة: عبر اتباع الخطوات المنهجية\n━━━━━━━━━━━━━━━\nالبطاقة 3\nالسؤال: ما هي النتيجة؟\nالإجابة: تحقيق الفهم العميق والتطبيق العملي`,
-    };
+    try {
+      const resp = await fetch(AI_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ tool: activeTool, text: input }),
+      });
 
-    setOutput(responses[activeTool] || "");
-    setLoading(false);
-    toast({ title: "تم التوليد بنجاح ✨" });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: "خطأ غير متوقع" }));
+        throw new Error(err.error || `Error ${resp.status}`);
+      }
+
+      if (!resp.body) throw new Error("No response body");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let result = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              result += content;
+              setOutput(result);
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      toast({ title: "تم التوليد بنجاح ✨" });
+    } catch (err: any) {
+      console.error("AI error:", err);
+      toast({ title: err.message || "حدث خطأ", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,7 +120,6 @@ export default function AITools() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Input */}
         <div className="space-y-3">
           <h3 className="font-medium text-sm">النص المدخل</h3>
           <Textarea
@@ -101,7 +143,6 @@ export default function AITools() {
           </Button>
         </div>
 
-        {/* Output */}
         <div className="space-y-3">
           <h3 className="font-medium text-sm">النتيجة</h3>
           <div className="min-h-[300px] rounded-xl border border-border bg-card p-5 whitespace-pre-wrap text-sm leading-relaxed">
