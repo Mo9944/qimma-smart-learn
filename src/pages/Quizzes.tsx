@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, RotateCcw, Sparkles, Loader2 } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, RotateCcw, Sparkles, Loader2, ArrowRight, Mic, MicOff } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
+const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tools`;
 
 interface Question {
   id: number;
@@ -14,24 +20,36 @@ interface Question {
   correct: number;
 }
 
-const sampleQuestions: Question[] = [
-  { id: 1, text: "ما هي وحدة قياس القوة في النظام الدولي؟", options: ["نيوتن", "جول", "واط", "باسكال"], correct: 0 },
-  { id: 2, text: "ما هو قانون نيوتن الثاني؟", options: ["F = ma", "E = mc²", "V = IR", "P = IV"], correct: 0 },
-  { id: 3, text: "أي من التالي يُعد كمية قياسية؟", options: ["السرعة", "التسارع", "الكتلة", "القوة"], correct: 2 },
-  { id: 4, text: "ما هي وحدة قياس الشغل؟", options: ["نيوتن", "جول", "هرتز", "أمبير"], correct: 1 },
-  { id: 5, text: "إذا كانت القوة = 10 نيوتن والكتلة = 2 كجم، ما التسارع؟", options: ["2 م/ث²", "5 م/ث²", "10 م/ث²", "20 م/ث²"], correct: 1 },
-];
-
 type QuizState = "setup" | "active" | "result";
 
 export default function Quizzes() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [state, setState] = useState<QuizState>("setup");
-  const [questions] = useState<Question[]>(sampleQuestions);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [timeLeft, setTimeLeft] = useState(300);
   const [generating, setGenerating] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [recording, setRecording] = useState(false);
+  const recognitionRef = useState<any>(null);
+
+  // Fetch user subjects
+  const { data: subjects = [] } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("*, lessons(id, title, content)")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (state !== "active") return;
@@ -42,52 +60,244 @@ export default function Quizzes() {
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
-  const score = Object.entries(answers).filter(([qId, ans]) => {
+  const score = Object.entries(answers).filter(([qId]) => {
     const q = questions.find(q => q.id === Number(qId));
-    return q && q.correct === ans;
+    return q && q.correct === answers[Number(qId)];
   }).length;
 
+  // Load lessons text when subject is selected
+  const handleSubjectSelect = (subjectId: string) => {
+    setSelectedSubject(subjectId);
+    const sub = subjects.find((s: any) => s.id === subjectId);
+    if (sub && (sub as any).lessons?.length > 0) {
+      const lessonsText = (sub as any).lessons
+        .filter((l: any) => l.content)
+        .map((l: any) => `${l.title}:\n${l.content}`)
+        .join("\n\n");
+      if (lessonsText.trim()) {
+        setInputText(lessonsText);
+      }
+    }
+  };
+
+  // Audio recording with Web Speech API
+  const startRecording = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ title: "المتصفح لا يدعم التعرف على الصوت", variant: "destructive" });
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ar-SA";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    let finalTranscript = inputText ? inputText + "\n" : "";
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript + " ";
+        } else {
+          interim = event.results[i][0].transcript;
+        }
+      }
+      setInputText(finalTranscript + interim);
+    };
+    recognition.onerror = () => setRecording(false);
+    recognition.onend = () => setRecording(false);
+    (recognitionRef as any)[1](recognition);
+    recognition.start();
+    setRecording(true);
+  };
+
+  const stopRecording = () => {
+    const rec = (recognitionRef as any)[0];
+    if (rec) rec.stop();
+    setRecording(false);
+  };
+
   const handleGenerateQuiz = async () => {
+    if (!inputText.trim()) {
+      toast({ title: "أدخل نص الدرس أو المحاضرة أولاً", variant: "destructive" });
+      return;
+    }
     setGenerating(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setGenerating(false);
-    setState("active");
-    setTimeLeft(300);
-    setCurrentQ(0);
-    setAnswers({});
+
+    try {
+      const resp = await fetch(AI_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ tool: "generate_quiz", text: inputText }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: "خطأ" }));
+        throw new Error(err.error || `Error ${resp.status}`);
+      }
+
+      if (!resp.body) throw new Error("No body");
+
+      // Read streaming response
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let result = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) result += content;
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Parse JSON from result - extract JSON array
+      const jsonMatch = result.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error("لم يتم توليد أسئلة صالحة");
+
+      const parsed: any[] = JSON.parse(jsonMatch[0]);
+      const generatedQuestions: Question[] = parsed.map((q, i) => ({
+        id: i + 1,
+        text: q.text,
+        options: q.options,
+        correct: q.correct,
+      }));
+
+      if (generatedQuestions.length === 0) throw new Error("لم يتم توليد أسئلة");
+
+      setQuestions(generatedQuestions);
+      setState("active");
+      setTimeLeft(generatedQuestions.length * 60); // 1 minute per question
+      setCurrentQ(0);
+      setAnswers({});
+      toast({ title: `تم توليد ${generatedQuestions.length} سؤال ✨` });
+    } catch (err: any) {
+      console.error("Quiz generation error:", err);
+      toast({ title: err.message || "حدث خطأ في توليد الأسئلة", variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
   };
 
   if (state === "setup") {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">الاختبارات</h1>
-          <p className="text-muted-foreground text-sm">أنشئ اختبارًا من أي درس وقيّم مستواك</p>
+          <h1 className="text-2xl font-bold">الاختبارات الذكية</h1>
+          <p className="text-muted-foreground text-sm">أدخل نص الدرس أو المحاضرة وسيولّد الذكاء الاصطناعي أسئلة تلقائية</p>
         </div>
 
-        <div className="max-w-lg mx-auto">
-          <div className="rounded-xl border border-border bg-card p-8 shadow-card text-center space-y-6">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <FileText className="h-8 w-8" />
+        <div className="max-w-2xl mx-auto space-y-4">
+          {/* Subject selector */}
+          {subjects.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">اختر مادة (اختياري)</Label>
+              <div className="flex flex-wrap gap-2">
+                {subjects.map((s: any) => (
+                  <button
+                    key={s.id}
+                    onClick={() => handleSubjectSelect(s.id)}
+                    className={`px-3 py-1.5 rounded-lg border text-sm transition-all ${
+                      selectedSubject === s.id
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card hover:border-primary/30"
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold mb-2">اختبار سريع</h2>
-              <p className="text-sm text-muted-foreground">5 أسئلة • 5 دقائق • فيزياء</p>
+          )}
+
+          {/* Text input */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">نص الدرس أو المحاضرة</Label>
+              <Button
+                variant={recording ? "destructive" : "outline"}
+                size="sm"
+                onClick={recording ? stopRecording : startRecording}
+                className="gap-1.5"
+              >
+                {recording ? (
+                  <>
+                    <MicOff className="h-3.5 w-3.5" />
+                    إيقاف
+                  </>
+                ) : (
+                  <>
+                    <Mic className="h-3.5 w-3.5" />
+                    تسجيل صوتي
+                  </>
+                )}
+              </Button>
             </div>
-            <Button onClick={handleGenerateQuiz} variant="default" size="lg" className="w-full" disabled={generating}>
-              {generating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  جارِ إنشاء الاختبار...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  ابدأ الاختبار
-                </>
+            
+            <AnimatePresence>
+              {recording && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex items-center gap-2 text-sm text-destructive"
+                >
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-destructive" />
+                  </span>
+                  جارِ التسجيل... تحدث بوضوح
+                </motion.div>
               )}
-            </Button>
+            </AnimatePresence>
+
+            <Textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="ألصق نص الدرس أو المحاضرة هنا، أو اضغط على تسجيل صوتي للإملاء..."
+              className="min-h-[200px] resize-none"
+            />
           </div>
+
+          <Button
+            onClick={handleGenerateQuiz}
+            variant="default"
+            size="lg"
+            className="w-full"
+            disabled={generating || !inputText.trim()}
+          >
+            {generating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                جارِ توليد الأسئلة بالذكاء الاصطناعي...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                توليد اختبار ذكي
+              </>
+            )}
+          </Button>
         </div>
       </div>
     );
@@ -130,10 +340,21 @@ export default function Quizzes() {
               })}
             </div>
 
-            <Button onClick={() => setState("setup")} variant="outline" className="w-full">
-              <RotateCcw className="h-4 w-4" />
-              اختبار جديد
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={() => setState("setup")} variant="outline" className="flex-1">
+                <RotateCcw className="h-4 w-4" />
+                اختبار جديد
+              </Button>
+              <Button onClick={() => {
+                setCurrentQ(0);
+                setAnswers({});
+                setTimeLeft(questions.length * 60);
+                setState("active");
+              }} variant="default" className="flex-1">
+                <ArrowRight className="h-4 w-4" />
+                أعد المحاولة
+              </Button>
+            </div>
           </motion.div>
         </div>
       </div>
