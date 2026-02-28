@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Brain, FileText, Lightbulb, Map, CreditCard, Loader2, Sparkles } from "lucide-react";
+import { Brain, FileText, Lightbulb, Map, CreditCard, Loader2, Sparkles, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AudioRecorder from "@/components/AudioRecorder";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tools`;
 
@@ -118,6 +119,12 @@ export default function AITools() {
           </button>
         ))}
       </div>
+
+      {/* Audio Recorder */}
+      <AudioRecorder onTranscriptReady={(text) => {
+        setInput(text);
+        setActiveTool("summary");
+      }} />
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="space-y-3">
