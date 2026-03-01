@@ -7,13 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import FileUploader from "@/components/FileUploader";
 
 export default function Subjects() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -28,22 +26,20 @@ export default function Subjects() {
       const { data, error } = await supabase
         .from("subjects")
         .select("*, lessons(id), files(id)")
-        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
   });
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!name.trim() || !user) throw new Error("missing");
+      if (!name.trim()) throw new Error("missing");
       if (editId) {
         const { error } = await supabase.from("subjects").update({ name, description }).eq("id", editId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("subjects").insert({ name, description, user_id: user.id });
+        const { error } = await supabase.from("subjects").insert({ name, description, user_id: "anonymous" });
         if (error) throw error;
       }
     },

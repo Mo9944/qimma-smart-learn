@@ -48,11 +48,8 @@ export default function Landing() {
             <a href="#pricing" className="hover:text-foreground transition-colors">الأسعار</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/auth">
-              <Button variant="ghost" size="sm">تسجيل الدخول</Button>
-            </Link>
-            <Link to="/auth?tab=signup">
-              <Button variant="default" size="sm">ابدأ مجانًا</Button>
+            <Link to="/dashboard">
+              <Button variant="default" size="sm">ابدأ الآن</Button>
             </Link>
           </div>
         </div>
@@ -84,7 +81,7 @@ export default function Landing() {
               كل ما تحتاجه في منصة واحدة مدعومة بالذكاء الاصطناعي
             </motion.p>
             <motion.div custom={3} variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/auth?tab=signup">
+              <Link to="/dashboard">
                 <Button variant="hero" size="xl">
                   ابدأ رحلتك مجانًا
                   <ArrowLeft className="h-5 w-5" />
@@ -176,7 +173,7 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              <Link to="/auth?tab=signup">
+              <Link to="/dashboard">
                 <Button variant="outline" className="w-full">ابدأ مجانًا</Button>
               </Link>
             </div>
@@ -202,7 +199,7 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              <Link to="/auth?tab=signup">
+              <Link to="/dashboard">
                 <Button variant="hero" className="w-full">اشترك الآن</Button>
               </Link>
             </div>
