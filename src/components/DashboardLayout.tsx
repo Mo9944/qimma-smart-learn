@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
-  Trophy, Clock, Users, Settings, LogOut, Sparkles, 
+  Trophy, Clock, Users, Sparkles, 
   ChevronLeft, Menu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "لوحة التحكم", path: "/dashboard" },
@@ -23,15 +22,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
-
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "طالب";
 
   const SidebarContent = () => (
     <>
@@ -63,16 +53,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           );
         })}
       </nav>
-
-      <div className="p-3 border-t border-sidebar-border space-y-1">
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-destructive hover:bg-sidebar-accent transition-colors"
-        >
-          <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>تسجيل الخروج</span>}
-        </button>
-      </div>
     </>
   );
 
@@ -108,9 +88,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-sm">
               <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-                {displayName.charAt(0)}
+                ط
               </div>
-              <span className="hidden sm:inline font-medium">{displayName}</span>
+              <span className="hidden sm:inline font-medium">طالب</span>
             </div>
           </div>
         </header>

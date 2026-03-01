@@ -7,7 +7,6 @@ import { FileText, Clock, CheckCircle, XCircle, RotateCcw, Sparkles, Loader2, Ar
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -24,7 +23,6 @@ type QuizState = "setup" | "active" | "result";
 
 export default function Quizzes() {
   const { toast } = useToast();
-  const { user } = useAuth();
   const [state, setState] = useState<QuizState>("setup");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
@@ -43,12 +41,10 @@ export default function Quizzes() {
       const { data, error } = await supabase
         .from("subjects")
         .select("*, lessons(id, title, content)")
-        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
   });
 
   useEffect(() => {

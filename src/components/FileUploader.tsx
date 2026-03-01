@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Upload, File, Image, Music, FileText, Trash2, Loader2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -32,7 +31,6 @@ interface FileUploaderProps {
 }
 
 export default function FileUploader({ subjectId, lessonId }: FileUploaderProps) {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,27 +41,25 @@ export default function FileUploader({ subjectId, lessonId }: FileUploaderProps)
   const { data: files = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      let query = supabase.from("files").select("*").eq("user_id", user!.id);
+      let query = supabase.from("files").select("*");
       if (subjectId) query = query.eq("subject_id", subjectId);
       if (lessonId) query = query.eq("lesson_id", lessonId);
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
   });
 
   const uploadMutation = useMutation({
     mutationFn: async (file: globalThis.File) => {
-      if (!user) throw new Error("Not authenticated");
       const ext = file.name.split(".").pop();
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const path = `anonymous/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error: uploadError } = await supabase.storage.from("user-files").upload(path, file);
       if (uploadError) throw uploadError;
 
       const { error: dbError } = await supabase.from("files").insert({
-        user_id: user.id,
+        user_id: "anonymous",
         subject_id: subjectId || null,
         lesson_id: lessonId || null,
         file_name: file.name,
