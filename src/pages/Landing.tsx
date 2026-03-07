@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   BookOpen, Brain, BarChart3, Trophy, Clock, Users, 
-  Sparkles, ArrowLeft, ChevronDown, Star, Zap, Shield
+  Sparkles, ArrowLeft, ChevronDown, Star, Zap, Shield,
+  CheckCircle, Lightbulb, Target, FileText
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -15,12 +16,19 @@ const fadeIn = {
 };
 
 const features = [
-  { icon: BookOpen, title: "إدارة المواد", desc: "نظّم موادك ودروسك وملفاتك في مكان واحد", color: "text-primary" },
-  { icon: Brain, title: "ذكاء اصطناعي", desc: "شرح مبسّط، أسئلة تلقائية، ملخصات وخرائط ذهنية", color: "text-info" },
-  { icon: BarChart3, title: "تحليل الأداء", desc: "تقارير مفصّلة ورسوم بيانية لتتبّع تقدّمك", color: "text-success" },
-  { icon: Trophy, title: "نظام تحفيز", desc: "نقاط XP، مستويات، أوسمة وتحديات يومية", color: "text-accent" },
-  { icon: Clock, title: "إدارة الوقت", desc: "جدول مذاكرة، مؤقت بومودورو، وتحليل الوقت", color: "text-warning" },
-  { icon: Users, title: "مجتمع طلابي", desc: "شارك ملخصاتك وتنافس مع زملائك", color: "text-destructive" },
+  { icon: BookOpen, title: "إدارة المواد", desc: "نظّم موادك ودروسك وملفاتك في مكان واحد مع تتبع التقدم" },
+  { icon: Brain, title: "ذكاء اصطناعي", desc: "شرح مبسّط، أسئلة تلقائية، ملخصات وخرائط ذهنية بضغطة زر" },
+  { icon: FileText, title: "اختبارات ذكية", desc: "توليد اختبارات من نصوص الدروس مع حفظ النتائج وتتبع الأداء" },
+  { icon: Clock, title: "تنظيم الوقت", desc: "جدول مذاكرة تلقائي بناءً على مواعيد اختباراتك وساعاتك المتاحة" },
+  { icon: BarChart3, title: "تحليل الأداء", desc: "رسوم بيانية ونتائج حقيقية لتتبّع تقدّمك في كل مادة" },
+  { icon: Trophy, title: "نظام تحفيز", desc: "نقاط XP، مستويات، أوسمة وتحديات يومية لزيادة الحماس" },
+];
+
+const howItWorks = [
+  { step: "01", icon: BookOpen, title: "أضف موادك", desc: "أضف المواد الدراسية والدروس والملفات بسهولة" },
+  { step: "02", icon: Brain, title: "استخدم الذكاء الاصطناعي", desc: "ألصق نص الدرس واحصل على شرح، ملخص، أو اختبار تلقائي" },
+  { step: "03", icon: Clock, title: "نظّم وقتك", desc: "أدخل مواعيد اختباراتك وسيُنشأ جدول مذاكرة تلقائياً" },
+  { step: "04", icon: BarChart3, title: "تابع تقدّمك", desc: "شاهد تحليلات أدائك ونتائج اختباراتك بالتفصيل" },
 ];
 
 const stats = [
@@ -44,52 +52,45 @@ export default function Landing() {
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">المميزات</a>
-            <a href="#stats" className="hover:text-foreground transition-colors">الإحصائيات</a>
+            <a href="#how" className="hover:text-foreground transition-colors">كيف يعمل</a>
             <a href="#pricing" className="hover:text-foreground transition-colors">الأسعار</a>
           </div>
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard">
-              <Button variant="default" size="sm">ابدأ الآن</Button>
-            </Link>
-          </div>
+          <Link to="/dashboard">
+            <Button variant="default" size="sm">ابدأ الآن</Button>
+          </Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden gradient-hero py-24 md:py-32">
+      <section className="relative overflow-hidden gradient-hero py-20 md:py-28">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 right-20 h-72 w-72 rounded-full bg-primary/30 blur-3xl" />
-          <div className="absolute bottom-10 left-20 h-56 w-56 rounded-full bg-accent/20 blur-3xl" />
+          <div className="absolute top-20 right-20 h-72 w-72 rounded-full bg-primary/40 blur-3xl" />
+          <div className="absolute bottom-10 left-20 h-56 w-56 rounded-full bg-primary/20 blur-3xl" />
         </div>
         <div className="container relative z-10">
-          <motion.div 
-            className="mx-auto max-w-3xl text-center"
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div custom={0} variants={fadeIn} className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm text-primary-foreground/80">
+          <motion.div className="mx-auto max-w-3xl text-center" initial="hidden" animate="visible">
+            <motion.div custom={0} variants={fadeIn} className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary-foreground/80">
               <Zap className="h-4 w-4" />
-              <span>نظام تشغيل متكامل للطالب</span>
+              <span>منصة متكاملة للطالب الذكي</span>
             </motion.div>
-            <motion.h1 custom={1} variants={fadeIn} className="mb-6 text-4xl font-bold leading-tight text-primary-foreground md:text-6xl">
-              ارتقِ بمذاكرتك إلى{" "}
-              <span className="text-gradient-accent">القِمّة</span>
+            <motion.h1 custom={1} variants={fadeIn} className="mb-6 text-4xl font-bold leading-tight text-primary-foreground md:text-5xl lg:text-6xl">
+              ذاكر بذكاء وارتقِ إلى{" "}
+              <span className="text-gradient">القِمّة</span>
             </motion.h1>
-            <motion.p custom={2} variants={fadeIn} className="mb-10 text-lg text-primary-foreground/70 md:text-xl leading-relaxed">
-              الفهم + المذاكرة + الاختبار + التحليل + التحفيز + التنظيم
-              <br />
-              كل ما تحتاجه في منصة واحدة مدعومة بالذكاء الاصطناعي
+            <motion.p custom={2} variants={fadeIn} className="mb-10 text-lg text-primary-foreground/70 md:text-xl leading-relaxed max-w-2xl mx-auto">
+              منصة تعليمية مدعومة بالذكاء الاصطناعي تجمع بين تنظيم المواد، توليد الاختبارات، 
+              جدولة المذاكرة، وتحليل الأداء في مكان واحد
             </motion.p>
             <motion.div custom={3} variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/dashboard">
                 <Button variant="hero" size="xl">
-                  ابدأ رحلتك مجانًا
+                  ابدأ مجانًا الآن
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </Link>
-              <a href="#features">
+              <a href="#how">
                 <Button variant="hero-outline" size="xl">
-                  اكتشف المميزات
+                  كيف يعمل؟
                   <ChevronDown className="h-5 w-5" />
                 </Button>
               </a>
@@ -99,9 +100,9 @@ export default function Landing() {
       </section>
 
       {/* Stats */}
-      <section id="stats" className="border-b border-border bg-card py-12">
+      <section className="border-b border-border bg-card py-10">
         <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((s, i) => (
               <motion.div
                 key={s.label}
@@ -120,26 +121,26 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 md:py-28">
+      <section id="features" className="py-16 md:py-24">
         <div className="container">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">كل ما يحتاجه الطالب</h2>
-            <p className="text-muted-foreground text-lg">منصة متكاملة صُمّمت لتحويل طريقة مذاكرتك بالكامل</p>
+          <div className="mx-auto max-w-2xl text-center mb-12">
+            <h2 className="text-3xl font-bold mb-3">كل ما يحتاجه الطالب</h2>
+            <p className="text-muted-foreground text-lg">أدوات ذكية صُمّمت لتحويل طريقة مذاكرتك بالكامل</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, i) => (
               <motion.div
                 key={f.title}
-                className="group rounded-xl border border-border bg-card p-6 shadow-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="group rounded-xl border border-border bg-card p-5 shadow-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
+                transition={{ delay: i * 0.07 }}
                 viewport={{ once: true }}
               >
-                <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-secondary ${f.color}`}>
-                  <f.icon className="h-6 w-6" />
+                <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                  <f.icon className="h-5 w-5" />
                 </div>
-                <h3 className="mb-2 text-lg font-semibold">{f.title}</h3>
+                <h3 className="mb-1.5 text-base font-semibold">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
@@ -147,68 +148,59 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-20 bg-secondary/50">
+      {/* How it Works */}
+      <section id="how" className="py-16 md:py-24 bg-secondary/40">
         <div className="container">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">خطط بسيطة وشفافة</h2>
-            <p className="text-muted-foreground text-lg">ابدأ مجانًا وطوّر حسابك متى شئت</p>
+          <div className="mx-auto max-w-2xl text-center mb-12">
+            <h2 className="text-3xl font-bold mb-3">كيف يعمل التطبيق؟</h2>
+            <p className="text-muted-foreground text-lg">أربع خطوات بسيطة للبدء في رحلتك التعليمية</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Free */}
-            <div className="rounded-xl border border-border bg-card p-8 shadow-card">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold mb-1">مجاني</h3>
-                <p className="text-muted-foreground text-sm">للبدء والتجربة</p>
-              </div>
-              <div className="mb-8">
-                <span className="text-4xl font-bold">0</span>
-                <span className="text-muted-foreground mr-1">ر.س / شهريًا</span>
-              </div>
-              <ul className="space-y-3 mb-8 text-sm">
-                {["3 مواد", "5 اختبارات شهريًا", "10 طلبات AI", "جدول مذاكرة"].map(t => (
-                  <li key={t} className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-success" />
-                    <span>{t}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link to="/dashboard">
-                <Button variant="outline" className="w-full">ابدأ مجانًا</Button>
-              </Link>
-            </div>
-
-            {/* Pro */}
-            <div className="relative rounded-xl border-2 border-primary bg-card p-8 shadow-lg">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full gradient-primary px-4 py-1 text-xs font-medium text-primary-foreground">
-                الأكثر شعبية
-              </div>
-              <div className="mb-6">
-                <h3 className="text-xl font-bold mb-1">بريميوم</h3>
-                <p className="text-muted-foreground text-sm">للطالب الجاد</p>
-              </div>
-              <div className="mb-8">
-                <span className="text-4xl font-bold">49</span>
-                <span className="text-muted-foreground mr-1">ر.س / شهريًا</span>
-              </div>
-              <ul className="space-y-3 mb-8 text-sm">
-                {["مواد غير محدودة", "اختبارات غير محدودة", "AI غير محدود", "تحليل متقدم", "مجتمع طلابي", "أولوية الدعم"].map(t => (
-                  <li key={t} className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-accent" />
-                    <span>{t}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link to="/dashboard">
-                <Button variant="hero" className="w-full">اشترك الآن</Button>
-              </Link>
-            </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {howItWorks.map((item, i) => (
+              <motion.div
+                key={item.step}
+                className="relative text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.12 }}
+                viewport={{ once: true }}
+              >
+                <div className="mb-4 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-glow">
+                  <item.icon className="h-7 w-7" />
+                </div>
+                <div className="text-xs font-bold text-primary mb-2">الخطوة {item.step}</div>
+                <h3 className="text-base font-semibold mb-1.5">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* CTA */}
+      <section className="py-16 md:py-20">
+        <div className="container">
+          <motion.div
+            className="mx-auto max-w-2xl text-center rounded-2xl gradient-hero p-10 md:p-14"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+          >
+            <Sparkles className="h-10 w-10 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">جاهز تبدأ رحلتك؟</h2>
+            <p className="text-primary-foreground/70 mb-8 text-lg">انضم الآن وابدأ بتنظيم مذاكرتك بذكاء</p>
+            <Link to="/dashboard">
+              <Button variant="hero" size="xl">
+                ابدأ الآن مجانًا
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="border-t border-border py-12">
+      <footer className="border-t border-border py-8">
         <div className="container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
