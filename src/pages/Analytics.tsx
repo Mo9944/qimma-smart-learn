@@ -1,42 +1,70 @@
-import { BarChart3, TrendingUp, BookOpen, Target } from "lucide-react";
+import { BarChart3, TrendingUp, BookOpen, Target, FileText, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
-
-const subjectPerformance = [
-  { name: "الرياضيات", score: 85, tests: 8, trend: "+5%" },
-  { name: "الفيزياء", score: 72, tests: 5, trend: "+12%" },
-  { name: "الكيمياء", score: 91, tests: 6, trend: "+3%" },
-  { name: "الأحياء", score: 68, tests: 4, trend: "+8%" },
-  { name: "اللغة العربية", score: 94, tests: 7, trend: "+2%" },
-];
-
-const weeklyData = [
-  { day: "الأحد", hours: 3.5 },
-  { day: "الإثنين", hours: 2 },
-  { day: "الثلاثاء", hours: 4 },
-  { day: "الأربعاء", hours: 1.5 },
-  { day: "الخميس", hours: 5 },
-  { day: "الجمعة", hours: 0.5 },
-  { day: "السبت", hours: 3 },
-];
-
-const maxHours = Math.max(...weeklyData.map(d => d.hours));
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Analytics() {
+  const { data: quizzes = [] } = useQuery({
+    queryKey: ["quizzes-analytics"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quizzes")
+        .select("*, subjects(name)")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: subjects = [] } = useQuery({
+    queryKey: ["subjects-analytics"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("*, lessons(id, completed)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Calculate stats
+  const totalQuizzes = quizzes.length;
+  const avgScore = totalQuizzes > 0
+    ? Math.round(quizzes.reduce((sum, q) => sum + ((q.score || 0) / (q.total_questions || 1)) * 100, 0) / totalQuizzes)
+    : 0;
+  const totalTime = quizzes.reduce((sum, q) => sum + (q.time_taken || 0), 0);
+  const totalTimeMin = Math.round(totalTime / 60);
+  const totalLessons = subjects.reduce((sum, s: any) => sum + (s.lessons?.length || 0), 0);
+
+  // Per-subject quiz performance
+  const subjectPerf = subjects.map((s: any) => {
+    const subQuizzes = quizzes.filter(q => q.subject_id === s.id);
+    const avg = subQuizzes.length > 0
+      ? Math.round(subQuizzes.reduce((sum, q) => sum + ((q.score || 0) / (q.total_questions || 1)) * 100, 0) / subQuizzes.length)
+      : 0;
+    return { name: s.name, score: avg, tests: subQuizzes.length, lessons: s.lessons?.length || 0 };
+  }).filter(s => s.tests > 0);
+
+  // Recent quizzes for chart
+  const recentQuizzes = quizzes.slice(0, 7).reverse();
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">التحليل والتقارير</h1>
-        <p className="text-muted-foreground text-sm">تتبّع تقدّمك وحلّل أداءك</p>
+        <p className="text-muted-foreground text-sm">بيانات حقيقية من اختباراتك ودروسك</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "المعدل العام", value: "82%", icon: Target, color: "text-primary bg-primary/10" },
-          { label: "ساعات المذاكرة", value: "19.5h", icon: BarChart3, color: "text-info bg-info/10" },
-          { label: "الاختبارات", value: "30", icon: BookOpen, color: "text-success bg-success/10" },
-          { label: "التحسّن", value: "+6%", icon: TrendingUp, color: "text-accent bg-accent/10" },
+          { label: "المعدل العام", value: `${avgScore}%`, icon: Target, color: "text-primary bg-primary/10" },
+          { label: "الاختبارات", value: totalQuizzes.toString(), icon: FileText, color: "text-info bg-info/10" },
+          { label: "الدروس", value: totalLessons.toString(), icon: BookOpen, color: "text-success bg-success/10" },
+          { label: "وقت المذاكرة", value: `${totalTimeMin}د`, icon: Clock, color: "text-warning bg-warning/10" },
         ].map((s, i) => (
           <motion.div
             key={s.label}
@@ -56,59 +84,90 @@ export default function Analytics() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Subject Performance */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <h2 className="font-semibold text-lg mb-5">أداء المواد</h2>
-          <div className="space-y-4">
-            {subjectPerformance.map((sub) => (
-              <div key={sub.name} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{sub.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-success text-xs">{sub.trend}</span>
-                    <span className="font-medium">{sub.score}%</span>
+        <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <h2 className="font-semibold text-base mb-4">أداء المواد</h2>
+          {subjectPerf.length > 0 ? (
+            <div className="space-y-4">
+              {subjectPerf.map((sub) => (
+                <div key={sub.name} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{sub.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{sub.tests} اختبار</span>
+                      <span className="font-medium">{sub.score}%</span>
+                    </div>
                   </div>
+                  <Progress value={sub.score} className="h-2" />
                 </div>
-                <Progress value={sub.score} className="h-2" />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">أكمل اختبارات لعرض أداء المواد</p>
+          )}
         </div>
 
-        {/* Weekly Study Hours */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <h2 className="font-semibold text-lg mb-5">ساعات المذاكرة الأسبوعية</h2>
-          <div className="flex items-end justify-between gap-2 h-48">
-            {weeklyData.map((d) => (
-              <div key={d.day} className="flex-1 flex flex-col items-center gap-2">
-                <span className="text-xs font-medium">{d.hours}h</span>
-                <motion.div
-                  className="w-full rounded-t-lg gradient-primary min-h-[4px]"
-                  initial={{ height: 0 }}
-                  animate={{ height: `${(d.hours / maxHours) * 100}%` }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                />
-                <span className="text-[10px] text-muted-foreground">{d.day}</span>
-              </div>
-            ))}
-          </div>
+        {/* Recent Quizzes Chart */}
+        <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <h2 className="font-semibold text-base mb-4">آخر الاختبارات</h2>
+          {recentQuizzes.length > 0 ? (
+            <div className="flex items-end justify-between gap-2 h-44">
+              {recentQuizzes.map((q, i) => {
+                const pct = q.total_questions ? Math.round(((q.score || 0) / q.total_questions) * 100) : 0;
+                return (
+                  <div key={q.id} className="flex-1 flex flex-col items-center gap-1.5">
+                    <span className="text-xs font-medium">{pct}%</span>
+                    <motion.div
+                      className="w-full rounded-t-md gradient-primary min-h-[4px]"
+                      initial={{ height: 0 }}
+                      animate={{ height: `${Math.max(pct, 5)}%` }}
+                      transition={{ duration: 0.5, delay: i * 0.08 }}
+                    />
+                    <span className="text-[9px] text-muted-foreground truncate max-w-full">{(q as any).subjects?.name || "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">لا توجد نتائج اختبارات بعد</p>
+          )}
         </div>
       </div>
 
-      {/* Predicted Score */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-        <div className="flex items-center gap-3 mb-4">
-          <Target className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-lg">التوقع الأكاديمي</h2>
-        </div>
-        <p className="text-muted-foreground text-sm mb-4">بناءً على أدائك الحالي ومعدل التحسّن، النتيجة المتوقعة:</p>
-        <div className="flex items-center gap-4">
-          <div className="text-4xl font-bold text-gradient">88%</div>
-          <div className="text-sm text-muted-foreground">
-            <p>معدل متوقع في الاختبارات النهائية</p>
-            <p className="text-success text-xs mt-1">↑ تحسّن بنسبة 6% عن الشهر السابق</p>
+      {/* Quiz History */}
+      {quizzes.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <h2 className="font-semibold text-base mb-4">سجل الاختبارات</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground text-xs">
+                  <th className="text-right py-2 pr-2">الاختبار</th>
+                  <th className="text-right py-2">النتيجة</th>
+                  <th className="text-right py-2">الأسئلة</th>
+                  <th className="text-right py-2">الوقت</th>
+                  <th className="text-right py-2">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quizzes.slice(0, 10).map((q) => {
+                  const pct = q.total_questions ? Math.round(((q.score || 0) / q.total_questions) * 100) : 0;
+                  return (
+                    <tr key={q.id} className="border-b border-border/50 last:border-0">
+                      <td className="py-2.5 pr-2 font-medium">{q.title}</td>
+                      <td className="py-2.5">
+                        <span className={`font-medium ${pct >= 70 ? "text-success" : pct >= 50 ? "text-warning" : "text-destructive"}`}>{pct}%</span>
+                      </td>
+                      <td className="py-2.5 text-muted-foreground">{q.score}/{q.total_questions}</td>
+                      <td className="py-2.5 text-muted-foreground">{q.time_taken ? `${Math.round(q.time_taken / 60)}د` : "—"}</td>
+                      <td className="py-2.5 text-muted-foreground text-xs">{q.created_at ? new Date(q.created_at).toLocaleDateString("ar-SA") : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
