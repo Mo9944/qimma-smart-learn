@@ -127,6 +127,20 @@ export default function RiasecTest() {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(30).fill(null));
   const [showResults, setShowResults] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const { data: history = [], refetch: refetchHistory } = useQuery({
+    queryKey: ["riasec-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("riasec_results")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const progress = Math.round(((answers.filter((a) => a !== null).length) / 30) * 100);
 
@@ -156,8 +170,33 @@ export default function RiasecTest() {
 
   const allAnswered = answers.every((a) => a !== null);
 
+  const saveResult = async () => {
+    const scores = calculateScores();
+    const topTypes = getTopTypes();
+    const code = topTypes.map(([t]) => t).join("");
+    const { error } = await supabase.from("riasec_results").insert({
+      code,
+      score_r: scores.R,
+      score_i: scores.I,
+      score_a: scores.A,
+      score_s: scores.S,
+      score_e: scores.E,
+      score_c: scores.C,
+    });
+    if (error) {
+      toast.error("حدث خطأ أثناء الحفظ");
+    } else {
+      toast.success("تم حفظ النتيجة بنجاح!");
+      setSaved(true);
+      refetchHistory();
+    }
+  };
+
   const handleFinish = () => {
-    if (allAnswered) setShowResults(true);
+    if (allAnswered) {
+      setShowResults(true);
+      setSaved(false);
+    }
   };
 
   const handleRestart = () => {
