@@ -353,12 +353,48 @@ export default function RiasecTest() {
           </Card>
         </motion.div>
 
-        <div className="text-center pb-4">
+        <div className="flex items-center justify-center gap-3 pb-4">
+          {!saved && (
+            <Button onClick={saveResult} variant="hero" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              حفظ النتيجة
+            </Button>
+          )}
           <Button onClick={handleRestart} variant="outline" className="gap-2">
             <RotateCcw className="h-4 w-4" />
             إعادة الاختبار
           </Button>
         </div>
+
+        {/* History */}
+        {history.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+            <Card>
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">سجل النتائج السابقة</h3>
+                </div>
+                <div className="space-y-2">
+                  {history.map((r: any) => (
+                    <div key={r.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-primary text-lg">{r.code}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {typeInfo[r.code[0] as RiasecType]?.emoji} {typeInfo[r.code[0] as RiasecType]?.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(r.created_at).toLocaleDateString("ar-SA")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
     );
   }
