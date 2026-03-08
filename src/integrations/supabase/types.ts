@@ -196,6 +196,45 @@ export type Database = {
           },
         ]
       }
+      riasec_results: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          score_a: number
+          score_c: number
+          score_e: number
+          score_i: number
+          score_r: number
+          score_s: number
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          score_a?: number
+          score_c?: number
+          score_e?: number
+          score_i?: number
+          score_r?: number
+          score_s?: number
+          user_id?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          score_a?: number
+          score_c?: number
+          score_e?: number
+          score_i?: number
+          score_r?: number
+          score_s?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           color: string | null

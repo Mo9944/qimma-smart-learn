@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Target, Star, AlertTriangle, Briefcase, Lightbulb } from "lucide-react";
+import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Target, Star, AlertTriangle, Briefcase, Lightbulb, History, Calendar } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 type RiasecType = "R" | "I" | "A" | "S" | "E" | "C";
 
@@ -127,6 +130,20 @@ export default function RiasecTest() {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(30).fill(null));
   const [showResults, setShowResults] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const { data: history = [], refetch: refetchHistory } = useQuery({
+    queryKey: ["riasec-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("riasec_results")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const progress = Math.round(((answers.filter((a) => a !== null).length) / 30) * 100);
 
@@ -156,8 +173,33 @@ export default function RiasecTest() {
 
   const allAnswered = answers.every((a) => a !== null);
 
+  const saveResult = async () => {
+    const scores = calculateScores();
+    const topTypes = getTopTypes();
+    const code = topTypes.map(([t]) => t).join("");
+    const { error } = await supabase.from("riasec_results").insert({
+      code,
+      score_r: scores.R,
+      score_i: scores.I,
+      score_a: scores.A,
+      score_s: scores.S,
+      score_e: scores.E,
+      score_c: scores.C,
+    });
+    if (error) {
+      toast.error("حدث خطأ أثناء الحفظ");
+    } else {
+      toast.success("تم حفظ النتيجة بنجاح!");
+      setSaved(true);
+      refetchHistory();
+    }
+  };
+
   const handleFinish = () => {
-    if (allAnswered) setShowResults(true);
+    if (allAnswered) {
+      setShowResults(true);
+      setSaved(false);
+    }
   };
 
   const handleRestart = () => {
@@ -311,12 +353,48 @@ export default function RiasecTest() {
           </Card>
         </motion.div>
 
-        <div className="text-center pb-4">
+        <div className="flex items-center justify-center gap-3 pb-4">
+          {!saved && (
+            <Button onClick={saveResult} variant="hero" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              حفظ النتيجة
+            </Button>
+          )}
           <Button onClick={handleRestart} variant="outline" className="gap-2">
             <RotateCcw className="h-4 w-4" />
             إعادة الاختبار
           </Button>
         </div>
+
+        {/* History */}
+        {history.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+            <Card>
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">سجل النتائج السابقة</h3>
+                </div>
+                <div className="space-y-2">
+                  {history.map((r: any) => (
+                    <div key={r.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-primary text-lg">{r.code}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {typeInfo[r.code[0] as RiasecType]?.emoji} {typeInfo[r.code[0] as RiasecType]?.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(r.created_at).toLocaleDateString("ar-SA")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
     );
   }
