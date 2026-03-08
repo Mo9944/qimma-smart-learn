@@ -55,7 +55,7 @@ export default function Landing() {
             <a href="#how" className="hover:text-foreground transition-colors">كيف يعمل</a>
             <a href="#pricing" className="hover:text-foreground transition-colors">الأسعار</a>
           </div>
-          <Link to="/dashboard">
+          <Link to="/auth">
             <Button variant="default" size="sm">ابدأ الآن</Button>
           </Link>
         </div>
@@ -82,7 +82,7 @@ export default function Landing() {
               جدولة المذاكرة، وتحليل الأداء في مكان واحد
             </motion.p>
             <motion.div custom={3} variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/dashboard">
+              <Link to="/auth">
                 <Button variant="hero" size="xl">
                   ابدأ مجانًا الآن
                   <ArrowLeft className="h-5 w-5" />
@@ -189,7 +189,7 @@ export default function Landing() {
             <Sparkles className="h-10 w-10 text-primary mx-auto mb-4" />
             <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">جاهز تبدأ رحلتك؟</h2>
             <p className="text-primary-foreground/70 mb-8 text-lg">انضم الآن وابدأ بتنظيم مذاكرتك بذكاء</p>
-            <Link to="/dashboard">
+            <Link to="/auth">
               <Button variant="hero" size="xl">
                 ابدأ الآن مجانًا
                 <ArrowLeft className="h-5 w-5" />

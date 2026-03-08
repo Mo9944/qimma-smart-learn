@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Brain, FileText, Lightbulb, Map, CreditCard, Loader2, Sparkles, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AudioRecorder from "@/components/AudioRecorder";
+import { supabase } from "@/integrations/supabase/client";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tools`;
 
@@ -31,11 +32,14 @@ export default function AITools() {
     setOutput("");
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("يرجى تسجيل الدخول أولاً");
+
       const resp = await fetch(AI_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ tool: activeTool, text: input }),
       });

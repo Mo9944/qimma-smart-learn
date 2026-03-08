@@ -35,7 +35,7 @@ export type Database = {
           lesson_id?: string | null
           storage_path: string
           subject_id?: string | null
-          user_id: string
+          user_id?: string
         }
         Update: {
           created_at?: string | null
