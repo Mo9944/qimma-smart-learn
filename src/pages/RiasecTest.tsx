@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Target, Star, AlertTriangle, Briefcase, Lightbulb } from "lucide-react";
+import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Target, Star, AlertTriangle, Briefcase, Lightbulb, History, Calendar } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 type RiasecType = "R" | "I" | "A" | "S" | "E" | "C";
 
