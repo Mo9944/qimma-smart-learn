@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
-  Trophy, Clock, Sparkles, ChevronLeft, Menu, X
+  Trophy, Clock, Sparkles, ChevronLeft, Menu, X, Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,7 @@ const navItems = [
   { icon: BarChart3, label: "التحليل", path: "/dashboard/analytics" },
   { icon: Trophy, label: "الإنجازات", path: "/dashboard/achievements" },
   { icon: Clock, label: "جدول المذاكرة", path: "/dashboard/time" },
+  { icon: Target, label: "اختبار الميول", path: "/dashboard/riasec" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

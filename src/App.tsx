@@ -12,6 +12,7 @@ import Quizzes from "./pages/Quizzes";
 import Analytics from "./pages/Analytics";
 import Achievements from "./pages/Achievements";
 import TimeManagement from "./pages/TimeManagement";
+import RiasecTest from "./pages/RiasecTest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/dashboard/analytics" element={<DashboardPage><Analytics /></DashboardPage>} />
           <Route path="/dashboard/achievements" element={<DashboardPage><Achievements /></DashboardPage>} />
           <Route path="/dashboard/time" element={<DashboardPage><TimeManagement /></DashboardPage>} />
+          <Route path="/dashboard/riasec" element={<DashboardPage><RiasecTest /></DashboardPage>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
