@@ -198,7 +198,7 @@ export default function Quizzes() {
         total_questions: questions.length,
         time_taken: timeTaken,
         subject_id: selectedSubject || null,
-        user_id: "anonymous",
+        user_id: "00000000-0000-0000-0000-000000000000",
       });
       if (error) throw error;
       setSaved(true);

@@ -61,7 +61,7 @@ export default function FileUploader({ subjectId, lessonId }: FileUploaderProps)
       if (uploadError) throw uploadError;
 
       const { error: dbError } = await supabase.from("files").insert({
-        user_id: "anonymous",
+        user_id: "00000000-0000-0000-0000-000000000000",
         subject_id: subjectId || null,
         lesson_id: lessonId || null,
         file_name: file.name,
