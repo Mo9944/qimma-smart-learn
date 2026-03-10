@@ -55,7 +55,7 @@ export default function FileUploader({ subjectId, lessonId }: FileUploaderProps)
   const uploadMutation = useMutation({
     mutationFn: async (file: globalThis.File) => {
       const ext = file.name.split(".").pop();
-      const path = `${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const path = `anonymous/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error: uploadError } = await supabase.storage.from("user-files").upload(path, file);
       if (uploadError) throw uploadError;
