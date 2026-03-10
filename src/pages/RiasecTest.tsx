@@ -128,7 +128,7 @@ const answerOptions = [
 ];
 
 export default function RiasecTest() {
-  const { user } = useAuth();
+  
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(30).fill(null));
   const [showResults, setShowResults] = useState(false);
