@@ -41,7 +41,7 @@ export default function Subjects() {
         const { error } = await supabase.from("subjects").update({ name, description }).eq("id", editId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("subjects").insert({ name, description, user_id: "anonymous" });
+        const { error } = await supabase.from("subjects").insert({ name, description, user_id: "00000000-0000-0000-0000-000000000000" });
         if (error) throw error;
       }
     },

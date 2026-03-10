@@ -86,7 +86,7 @@ export type Database = {
           subject_id: string
           title: string
           updated_at?: string | null
-          user_id: string
+          user_id?: string
         }
         Update: {
           completed?: boolean | null
@@ -166,7 +166,7 @@ export type Database = {
           time_taken?: number | null
           title: string
           total_questions?: number | null
-          user_id: string
+          user_id?: string
         }
         Update: {
           created_at?: string | null
@@ -252,7 +252,7 @@ export type Database = {
           id?: string
           name: string
           updated_at?: string | null
-          user_id: string
+          user_id?: string
         }
         Update: {
           color?: string | null
