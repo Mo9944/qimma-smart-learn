@@ -24,7 +24,7 @@ type QuizState = "setup" | "active" | "result";
 
 export default function Quizzes() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  
   const [state, setState] = useState<QuizState>("setup");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
