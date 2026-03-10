@@ -181,7 +181,7 @@ export default function RiasecTest() {
     const code = topTypes.map(([t]) => t).join("");
     const { error } = await supabase.from("riasec_results").insert({
       code,
-      user_id: user!.id,
+      user_id: "anonymous",
       score_r: scores.R,
       score_i: scores.I,
       score_a: scores.A,
