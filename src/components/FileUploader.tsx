@@ -36,7 +36,7 @@ export default function FileUploader({ subjectId, lessonId }: FileUploaderProps)
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const { user } = useAuth();
+  
 
   const queryKey = ["files", subjectId, lessonId];
 
