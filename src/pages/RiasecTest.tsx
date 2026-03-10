@@ -7,7 +7,7 @@ import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Target, Star, AlertTria
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+
 
 type RiasecType = "R" | "I" | "A" | "S" | "E" | "C";
 
@@ -128,7 +128,7 @@ const answerOptions = [
 ];
 
 export default function RiasecTest() {
-  const { user } = useAuth();
+  
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(30).fill(null));
   const [showResults, setShowResults] = useState(false);
@@ -181,7 +181,7 @@ export default function RiasecTest() {
     const code = topTypes.map(([t]) => t).join("");
     const { error } = await supabase.from("riasec_results").insert({
       code,
-      user_id: user!.id,
+      user_id: "anonymous",
       score_r: scores.R,
       score_i: scores.I,
       score_a: scores.A,

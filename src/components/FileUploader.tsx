@@ -5,7 +5,7 @@ import { Upload, File, Image, Music, FileText, Trash2, Loader2, Download } from 
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/useAuth";
+
 
 const FILE_ICONS: Record<string, typeof File> = {
   "application/pdf": FileText,
@@ -36,7 +36,7 @@ export default function FileUploader({ subjectId, lessonId }: FileUploaderProps)
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const { user } = useAuth();
+  
 
   const queryKey = ["files", subjectId, lessonId];
 
@@ -55,13 +55,13 @@ export default function FileUploader({ subjectId, lessonId }: FileUploaderProps)
   const uploadMutation = useMutation({
     mutationFn: async (file: globalThis.File) => {
       const ext = file.name.split(".").pop();
-      const path = `${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const path = `anonymous/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error: uploadError } = await supabase.storage.from("user-files").upload(path, file);
       if (uploadError) throw uploadError;
 
       const { error: dbError } = await supabase.from("files").insert({
-        user_id: user!.id,
+        user_id: "anonymous",
         subject_id: subjectId || null,
         lesson_id: lessonId || null,
         file_name: file.name,

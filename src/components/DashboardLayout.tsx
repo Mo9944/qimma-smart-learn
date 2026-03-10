@@ -2,10 +2,9 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
-  Trophy, Clock, Sparkles, ChevronLeft, Menu, X, Target, LogOut
+  Trophy, Clock, Sparkles, ChevronLeft, Menu, Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
@@ -22,10 +21,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const { user, signOut } = useAuth();
-
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "مستخدم";
-  const initial = displayName.charAt(0);
 
   const NavContent = () => (
     <>
@@ -57,17 +52,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           );
         })}
       </nav>
-      {!collapsed && (
-        <div className="px-2 py-3 border-t border-sidebar-border">
-          <button
-            onClick={signOut}
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground w-full transition-colors"
-          >
-            <LogOut className="h-[18px] w-[18px] shrink-0" />
-            <span>تسجيل الخروج</span>
-          </button>
-        </div>
-      )}
     </>
   );
 
@@ -105,9 +89,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
           <div className="flex items-center gap-2 text-sm mr-auto">
             <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-              {initial}
+              ط
             </div>
-            <span className="hidden sm:inline font-medium">{displayName}</span>
+            <span className="hidden sm:inline font-medium">طالب</span>
           </div>
         </header>
         <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>

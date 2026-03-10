@@ -10,12 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import FileUploader from "@/components/FileUploader";
-import { useAuth } from "@/hooks/useAuth";
+
 
 export default function Subjects() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -41,7 +41,7 @@ export default function Subjects() {
         const { error } = await supabase.from("subjects").update({ name, description }).eq("id", editId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("subjects").insert({ name, description, user_id: user!.id });
+        const { error } = await supabase.from("subjects").insert({ name, description, user_id: "anonymous" });
         if (error) throw error;
       }
     },

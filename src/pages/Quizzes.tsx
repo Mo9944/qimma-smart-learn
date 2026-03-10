@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tools`;
 
@@ -24,7 +24,7 @@ type QuizState = "setup" | "active" | "result";
 
 export default function Quizzes() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  
   const [state, setState] = useState<QuizState>("setup");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
@@ -118,14 +118,11 @@ export default function Quizzes() {
     setSaved(false);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("يرجى تسجيل الدخول أولاً");
-
       const resp = await fetch(AI_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ tool: "generate_quiz", text: inputText }),
       });
@@ -201,7 +198,7 @@ export default function Quizzes() {
         total_questions: questions.length,
         time_taken: timeTaken,
         subject_id: selectedSubject || null,
-        user_id: user!.id,
+        user_id: "anonymous",
       });
       if (error) throw error;
       setSaved(true);
