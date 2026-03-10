@@ -7,7 +7,7 @@ import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Target, Star, AlertTria
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+
 
 type RiasecType = "R" | "I" | "A" | "S" | "E" | "C";
 

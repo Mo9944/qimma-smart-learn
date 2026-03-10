@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import FileUploader from "@/components/FileUploader";
-import { useAuth } from "@/hooks/useAuth";
+
 
 export default function Subjects() {
   const { toast } = useToast();

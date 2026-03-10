@@ -5,7 +5,7 @@ import { Upload, File, Image, Music, FileText, Trash2, Loader2, Download } from 
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/useAuth";
+
 
 const FILE_ICONS: Record<string, typeof File> = {
   "application/pdf": FileText,
