@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"IBM Plex Sans Arabic"', 'system-ui', 'sans-serif'],
+        display: ['"Noto Kufi Arabic"', '"IBM Plex Sans Arabic"', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
