@@ -1,4 +1,4 @@
-import { BookOpen, Brain, FileText, BarChart3, Trophy, Clock, Flame, Target } from "lucide-react";
+import { BookOpen, Brain, FileText, BarChart3, Trophy, Clock, Target, Compass, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
@@ -32,23 +32,38 @@ export default function DashboardHome() {
     },
   });
 
+  const { data: riasecResults = [] } = useQuery({
+    queryKey: ["riasec-home"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("riasec_results")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const totalQuizzes = quizzes.length;
   const avgScore = totalQuizzes > 0
     ? Math.round(quizzes.reduce((sum, q) => sum + ((q.score || 0) / (q.total_questions || 1)) * 100, 0) / totalQuizzes)
     : 0;
 
+  const lastRiasec = riasecResults[0];
+
   const quickStats = [
-    { icon: BookOpen, label: "المواد", value: subjects.length.toString(), sub: "مادة", color: "text-primary", bg: "bg-primary/10" },
-    { icon: FileText, label: "الاختبارات", value: totalQuizzes.toString(), sub: "اختبار", color: "text-info", bg: "bg-info/10" },
+    { icon: Compass, label: "الشخصية", value: lastRiasec?.code || "—", sub: "نمطك", color: "text-primary", bg: "bg-primary/10" },
+    { icon: BookOpen, label: "المواد", value: subjects.length.toString(), sub: "مادة", color: "text-info", bg: "bg-info/10" },
+    { icon: FileText, label: "الاختبارات", value: totalQuizzes.toString(), sub: "اختبار", color: "text-warning", bg: "bg-warning/10" },
     { icon: Target, label: "المعدل", value: `${avgScore}%`, sub: "معدل عام", color: "text-success", bg: "bg-success/10" },
-    { icon: Trophy, label: "الإنجازات", value: "3", sub: "أوسمة", color: "text-warning", bg: "bg-warning/10" },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">مرحبًا بك! 👋</h1>
-        <p className="text-muted-foreground text-sm">تابع رحلتك التعليمية</p>
+        <h1 className="text-2xl font-bold font-display">مرحبًا بك في أثر 👋</h1>
+        <p className="text-muted-foreground text-sm">اكتشف مواهبك وطوّر ذاتك</p>
       </div>
 
       {/* Quick Stats */}
@@ -69,6 +84,30 @@ export default function DashboardHome() {
           </motion.div>
         ))}
       </div>
+
+      {/* CTA if no RIASEC */}
+      {!lastRiasec && (
+        <motion.div
+          className="rounded-xl gradient-primary p-6 text-primary-foreground"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
+              <Compass className="h-6 w-6" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-lg font-display mb-1">اكتشف شخصيتك!</h3>
+              <p className="text-primary-foreground/80 text-sm mb-3">أجب على 30 سؤال واكتشف مواهبك ونقاط قوتك ومسارك المهني</p>
+              <Link to="/dashboard/riasec">
+                <button className="bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium transition-colors">
+                  ابدأ الاختبار الآن ←
+                </button>
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-5">
         {/* Recent Subjects */}
@@ -131,9 +170,9 @@ export default function DashboardHome() {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { icon: Brain, label: "أداة AI", path: "/dashboard/ai", color: "text-primary" },
-          { icon: FileText, label: "اختبار سريع", path: "/dashboard/quizzes", color: "text-info" },
-          { icon: Clock, label: "جدول المذاكرة", path: "/dashboard/time", color: "text-warning" },
+          { icon: Compass, label: "اختبار الشخصية", path: "/dashboard/riasec", color: "text-primary" },
+          { icon: Brain, label: "أدوات AI", path: "/dashboard/ai", color: "text-info" },
+          { icon: Clock, label: "تنظيم الوقت", path: "/dashboard/time", color: "text-warning" },
           { icon: BarChart3, label: "التقارير", path: "/dashboard/analytics", color: "text-success" },
         ].map((a) => (
           <Link

@@ -2,19 +2,19 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
-  Trophy, Clock, Sparkles, ChevronLeft, Menu, Target
+  Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
-  { icon: BookOpen, label: "المواد", path: "/dashboard/subjects" },
+  { icon: Compass, label: "اختبار الشخصية", path: "/dashboard/riasec" },
   { icon: Brain, label: "أدوات AI", path: "/dashboard/ai" },
+  { icon: BookOpen, label: "المواد", path: "/dashboard/subjects" },
   { icon: FileText, label: "الاختبارات", path: "/dashboard/quizzes" },
+  { icon: Clock, label: "تنظيم الوقت", path: "/dashboard/time" },
   { icon: BarChart3, label: "التحليل", path: "/dashboard/analytics" },
   { icon: Trophy, label: "الإنجازات", path: "/dashboard/achievements" },
-  { icon: Clock, label: "جدول المذاكرة", path: "/dashboard/time" },
-  { icon: Target, label: "اختبار الميول", path: "/dashboard/riasec" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg gradient-primary">
           <Sparkles className="h-4 w-4 text-primary-foreground" />
         </div>
-        {!collapsed && <span className="text-lg font-bold text-sidebar-foreground">قِمّة</span>}
+        {!collapsed && <span className="text-lg font-bold font-display text-sidebar-foreground">أثر</span>}
       </div>
       <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
@@ -89,9 +89,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
           <div className="flex items-center gap-2 text-sm mr-auto">
             <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-              ط
+              م
             </div>
-            <span className="hidden sm:inline font-medium">طالب</span>
+            <span className="hidden sm:inline font-medium">مستخدم</span>
           </div>
         </header>
         <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
