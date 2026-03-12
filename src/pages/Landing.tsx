@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  BookOpen, Brain, BarChart3, Trophy, Clock, Users, 
-  Sparkles, ArrowLeft, ChevronDown, Star, Zap, Shield,
-  CheckCircle, Lightbulb, Target, FileText
+  Brain, BarChart3, Trophy, Clock, 
+  Sparkles, ArrowLeft, ChevronDown, Zap,
+  Lightbulb, Target, Users, Heart, Compass, Star
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -16,26 +16,26 @@ const fadeIn = {
 };
 
 const features = [
-  { icon: BookOpen, title: "إدارة المواد", desc: "نظّم موادك ودروسك وملفاتك في مكان واحد مع تتبع التقدم" },
-  { icon: Brain, title: "ذكاء اصطناعي", desc: "شرح مبسّط، أسئلة تلقائية، ملخصات وخرائط ذهنية بضغطة زر" },
-  { icon: FileText, title: "اختبارات ذكية", desc: "توليد اختبارات من نصوص الدروس مع حفظ النتائج وتتبع الأداء" },
-  { icon: Clock, title: "تنظيم الوقت", desc: "جدول مذاكرة تلقائي بناءً على مواعيد اختباراتك وساعاتك المتاحة" },
-  { icon: BarChart3, title: "تحليل الأداء", desc: "رسوم بيانية ونتائج حقيقية لتتبّع تقدّمك في كل مادة" },
-  { icon: Trophy, title: "نظام تحفيز", desc: "نقاط XP، مستويات، أوسمة وتحديات يومية لزيادة الحماس" },
+  { icon: Compass, title: "اكتشاف المواهب", desc: "اختبارات علمية تكشف مواهبك الحقيقية ونقاط قوتك الخفية" },
+  { icon: Brain, title: "تحليل الشخصية", desc: "تحليل ذكي لنمط شخصيتك بناءً على نموذج RIASEC العالمي" },
+  { icon: Target, title: "نقاط القوة والضعف", desc: "تقرير تفصيلي بنقاط قوتك وجوانب التحسين مع خطة تطوير" },
+  { icon: Lightbulb, title: "نصائح ذكية", desc: "الذكاء الاصطناعي يقدم نصائح مخصصة لتطوير مهاراتك" },
+  { icon: Clock, title: "تنظيم الوقت", desc: "أدوات ذكية لتنظيم وقتك وبناء عادات إنتاجية" },
+  { icon: BarChart3, title: "تتبع التقدم", desc: "رسوم بيانية توضح تطورك ومسيرة نموك الشخصي" },
 ];
 
 const howItWorks = [
-  { step: "01", icon: BookOpen, title: "أضف موادك", desc: "أضف المواد الدراسية والدروس والملفات بسهولة" },
-  { step: "02", icon: Brain, title: "استخدم الذكاء الاصطناعي", desc: "ألصق نص الدرس واحصل على شرح، ملخص، أو اختبار تلقائي" },
-  { step: "03", icon: Clock, title: "نظّم وقتك", desc: "أدخل مواعيد اختباراتك وسيُنشأ جدول مذاكرة تلقائياً" },
-  { step: "04", icon: BarChart3, title: "تابع تقدّمك", desc: "شاهد تحليلات أدائك ونتائج اختباراتك بالتفصيل" },
+  { step: "01", icon: Compass, title: "أجب على الاختبار", desc: "اختبار شخصية بسيط من 30 سؤال لاكتشاف نمطك" },
+  { step: "02", icon: Brain, title: "احصل على التحليل", desc: "الذكاء الاصطناعي يحلل نتائجك ويكشف مواهبك" },
+  { step: "03", icon: Target, title: "اكتشف مسارك", desc: "تعرف على المجالات المهنية والدراسية المناسبة لك" },
+  { step: "04", icon: Sparkles, title: "ابدأ التطوير", desc: "نصائح عملية وخطط مخصصة لتطوير نفسك" },
 ];
 
 const stats = [
-  { value: "50K+", label: "طالب نشط" },
-  { value: "95%", label: "نسبة النجاح" },
-  { value: "1M+", label: "اختبار مُكتمل" },
-  { value: "4.9", label: "تقييم المستخدمين" },
+  { value: "30+", label: "سؤال تحليلي" },
+  { value: "6", label: "أنماط شخصية" },
+  { value: "AI", label: "تحليل ذكي" },
+  { value: "∞", label: "إمكانيات للنمو" },
 ];
 
 export default function Landing() {
@@ -44,18 +44,17 @@ export default function Landing() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary shadow-glow">
               <Sparkles className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">قِمّة</span>
+            <span className="text-xl font-bold font-display text-foreground">أثر</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">المميزات</a>
             <a href="#how" className="hover:text-foreground transition-colors">كيف يعمل</a>
-            <a href="#pricing" className="hover:text-foreground transition-colors">الأسعار</a>
           </div>
-          <Link to="/auth">
+          <Link to="/dashboard">
             <Button variant="default" size="sm">ابدأ الآن</Button>
           </Link>
         </div>
@@ -69,22 +68,22 @@ export default function Landing() {
         </div>
         <div className="container relative z-10">
           <motion.div className="mx-auto max-w-3xl text-center" initial="hidden" animate="visible">
-            <motion.div custom={0} variants={fadeIn} className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary-foreground/80">
+            <motion.div custom={0} variants={fadeIn} className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary-foreground/80">
               <Zap className="h-4 w-4" />
-              <span>منصة متكاملة للطالب الذكي</span>
+              <span>منصة عربية ذكية لاكتشاف الذات</span>
             </motion.div>
-            <motion.h1 custom={1} variants={fadeIn} className="mb-6 text-4xl font-bold leading-tight text-primary-foreground md:text-5xl lg:text-6xl">
-              ذاكر بذكاء وارتقِ إلى{" "}
-              <span className="text-gradient">القِمّة</span>
+            <motion.h1 custom={1} variants={fadeIn} className="mb-6 text-4xl font-bold font-display leading-tight text-primary-foreground md:text-5xl lg:text-6xl">
+              اكتشف مواهبك{" "}
+              <span className="text-gradient">واصنع أثرك</span>
             </motion.h1>
             <motion.p custom={2} variants={fadeIn} className="mb-10 text-lg text-primary-foreground/70 md:text-xl leading-relaxed max-w-2xl mx-auto">
-              منصة تعليمية مدعومة بالذكاء الاصطناعي تجمع بين تنظيم المواد، توليد الاختبارات، 
-              جدولة المذاكرة، وتحليل الأداء في مكان واحد
+              منصة مدعومة بالذكاء الاصطناعي تساعدك على تحليل شخصيتك، 
+              اكتشاف نقاط قوتك، ومعرفة المسار المهني والدراسي الأنسب لك
             </motion.p>
             <motion.div custom={3} variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/auth">
+              <Link to="/dashboard/riasec">
                 <Button variant="hero" size="xl">
-                  ابدأ مجانًا الآن
+                  ابدأ اختبار الشخصية
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </Link>
@@ -112,7 +111,7 @@ export default function Landing() {
                 transition={{ delay: i * 0.1 }}
                 viewport={{ once: true }}
               >
-                <div className="text-3xl font-bold text-gradient mb-1">{s.value}</div>
+                <div className="text-3xl font-bold font-display text-gradient mb-1">{s.value}</div>
                 <div className="text-sm text-muted-foreground">{s.label}</div>
               </motion.div>
             ))}
@@ -124,8 +123,8 @@ export default function Landing() {
       <section id="features" className="py-16 md:py-24">
         <div className="container">
           <div className="mx-auto max-w-2xl text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3">كل ما يحتاجه الطالب</h2>
-            <p className="text-muted-foreground text-lg">أدوات ذكية صُمّمت لتحويل طريقة مذاكرتك بالكامل</p>
+            <h2 className="text-3xl font-bold font-display mb-3">كل ما تحتاجه لاكتشاف ذاتك</h2>
+            <p className="text-muted-foreground text-lg">أدوات ذكية صُمّمت لمساعدتك في فهم نفسك وتطوير إمكاناتك</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, i) => (
@@ -152,8 +151,8 @@ export default function Landing() {
       <section id="how" className="py-16 md:py-24 bg-secondary/40">
         <div className="container">
           <div className="mx-auto max-w-2xl text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3">كيف يعمل التطبيق؟</h2>
-            <p className="text-muted-foreground text-lg">أربع خطوات بسيطة للبدء في رحلتك التعليمية</p>
+            <h2 className="text-3xl font-bold font-display mb-3">كيف تبدأ رحلتك؟</h2>
+            <p className="text-muted-foreground text-lg">أربع خطوات بسيطة لاكتشاف إمكاناتك الحقيقية</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {howItWorks.map((item, i) => (
@@ -187,11 +186,11 @@ export default function Landing() {
             viewport={{ once: true }}
           >
             <Sparkles className="h-10 w-10 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">جاهز تبدأ رحلتك؟</h2>
-            <p className="text-primary-foreground/70 mb-8 text-lg">انضم الآن وابدأ بتنظيم مذاكرتك بذكاء</p>
-            <Link to="/auth">
+            <h2 className="text-2xl md:text-3xl font-bold font-display text-primary-foreground mb-3">جاهز تكتشف نفسك؟</h2>
+            <p className="text-primary-foreground/70 mb-8 text-lg">ابدأ الآن واكتشف مواهبك ونقاط قوتك</p>
+            <Link to="/dashboard/riasec">
               <Button variant="hero" size="xl">
-                ابدأ الآن مجانًا
+                ابدأ اختبار الشخصية مجانًا
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
@@ -207,9 +206,9 @@ export default function Landing() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
                 <Sparkles className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-bold">قِمّة</span>
+              <span className="font-bold font-display">أثر</span>
             </div>
-            <p className="text-sm text-muted-foreground">© 2026 قِمّة. جميع الحقوق محفوظة.</p>
+            <p className="text-sm text-muted-foreground">© 2026 أثر. جميع الحقوق محفوظة.</p>
           </div>
         </div>
       </footer>
