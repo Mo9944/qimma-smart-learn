@@ -93,8 +93,8 @@ export default function AITools() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">أدوات الذكاء الاصطناعي</h1>
-        <p className="text-muted-foreground text-sm">أدخل نص الدرس واختر الأداة المناسبة</p>
+        <h1 className="text-2xl font-bold font-display">أدوات الذكاء الاصطناعي</h1>
+        <p className="text-muted-foreground text-sm">أدخل نصاً واحصل على تحليل، ملخص، أو نصائح ذكية</p>
       </div>
 
       <div className="grid lg:grid-cols-5 gap-3">
