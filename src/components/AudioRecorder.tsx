@@ -1,11 +1,13 @@
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Loader2, FileText, Brain, Lightbulb, BookOpen } from "lucide-react";
+import { Mic, MicOff, Loader2, FileText, Brain, Lightbulb, BookOpen, Upload, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tools`;
+const TRANSCRIBE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`;
 
 interface AudioRecorderProps {
   onTranscriptReady?: (text: string) => void;
@@ -61,9 +63,9 @@ async function streamAI(
 }
 
 const aiActions = [
-  { id: "lecture_summary", icon: Brain, label: "تلخيص المحاضرة", color: "text-primary" },
-  { id: "lecture_explain", icon: Lightbulb, label: "شرح المحاضرة", color: "text-amber-500" },
-  { id: "lecture_notes", icon: BookOpen, label: "استخراج ملاحظات", color: "text-emerald-500" },
+  { id: "lecture_summary", icon: Brain, label: "تلخيص المحاضرة" },
+  { id: "lecture_explain", icon: Lightbulb, label: "شرح المحاضرة" },
+  { id: "lecture_notes", icon: BookOpen, label: "استخراج ملاحظات" },
 ];
 
 export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps) {
@@ -74,7 +76,10 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
   const [aiResult, setAiResult] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAction, setActiveAction] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
   const recognitionRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startRecording = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -130,6 +135,62 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
     setRecording(false);
   }, []);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ["audio/mpeg", "audio/wav", "audio/mp4", "audio/ogg", "audio/webm", "audio/x-m4a"];
+    const validExtensions = [".mp3", ".wav", ".m4a", ".ogg", ".webm"];
+    const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+
+    if (!validTypes.includes(file.type) && !validExtensions.includes(ext)) {
+      toast({ title: "صيغة الملف غير مدعومة. استخدم MP3, WAV, M4A, OGG", variant: "destructive" });
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast({ title: "حجم الملف كبير جداً (الحد الأقصى 20MB)", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    setUploadedFileName(file.name);
+    setTranscript("");
+    setAiResult("");
+    setActiveAction("");
+
+    try {
+      const formData = new FormData();
+      formData.append("audio", file);
+
+      const resp = await fetch(TRANSCRIBE_URL, {
+        method: "POST",
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: formData,
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: "خطأ في رفع الملف" }));
+        throw new Error(err.error || `Error ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      if (data.transcript) {
+        setTranscript(data.transcript);
+        toast({ title: "تم تفريغ الملف الصوتي بنجاح ✨" });
+      } else {
+        toast({ title: "لم يتم العثور على نص في الملف الصوتي", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: err.message || "حدث خطأ أثناء تفريغ الملف", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleAIAction = async (actionId: string) => {
     if (!transcript.trim()) return;
     setAiLoading(true);
@@ -149,6 +210,60 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
     }
   };
 
+  const exportToPDF = () => {
+    if (!aiResult && !transcript) return;
+
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+    // Load Arabic-compatible font workaround: use simple text rendering
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const maxWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    const titleLabel =
+      activeAction === "lecture_summary" ? "Lecture Summary" :
+      activeAction === "lecture_explain" ? "Lecture Explanation" :
+      activeAction === "lecture_notes" ? "Lecture Notes" : "Transcript";
+    doc.text(titleLabel, pageWidth / 2, y, { align: "center" });
+    y += 15;
+
+    // Content - strip markdown
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    const content = aiResult || transcript;
+    const cleanText = content
+      .replace(/[#*_~`]/g, "")
+      .replace(/\n{3,}/g, "\n\n");
+
+    const lines = doc.splitTextToSize(cleanText, maxWidth);
+
+    for (const line of lines) {
+      if (y > doc.internal.pageSize.getHeight() - 20) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(line, margin, y);
+      y += 6;
+    }
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(`Page ${i} / ${pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+      doc.text("Athar Platform", margin, doc.internal.pageSize.getHeight() - 10);
+    }
+
+    doc.save(`athar-${activeAction || "transcript"}-${Date.now()}.pdf`);
+    toast({ title: "تم تصدير الملف بنجاح 📄" });
+  };
+
   const sendToParent = () => {
     if (transcript.trim() && onTranscriptReady) {
       onTranscriptReady(transcript.trim());
@@ -165,34 +280,51 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <div className="flex items-center gap-3 mb-2">
+    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <div className="flex items-center gap-3 mb-1">
         <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
           <Mic className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold text-sm">تسجيل المحاضرات الصوتية</h3>
-          <p className="text-xs text-muted-foreground">سجّل محاضرتك واحصل على تلخيص وشرح بالذكاء الاصطناعي</p>
+          <h3 className="font-semibold text-sm">تسجيل وتفريغ المحاضرات</h3>
+          <p className="text-xs text-muted-foreground">سجّل مباشرة أو ارفع ملف صوتي (MP3, WAV, M4A)</p>
         </div>
       </div>
 
-      <div className="flex gap-3 items-center">
+      {/* Controls */}
+      <div className="flex flex-wrap gap-2 items-center">
         <Button
           onClick={recording ? stopRecording : startRecording}
           variant={recording ? "destructive" : "default"}
-          size="lg"
+          size="sm"
           className="gap-2"
+          disabled={uploading}
         >
           {recording ? (
-            <>
-              <MicOff className="h-4 w-4" />
-              إيقاف التسجيل
-            </>
+            <><MicOff className="h-4 w-4" /> إيقاف</>
           ) : (
-            <>
-              <Mic className="h-4 w-4" />
-              ابدأ التسجيل
-            </>
+            <><Mic className="h-4 w-4" /> تسجيل مباشر</>
+          )}
+        </Button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          disabled={uploading || recording}
+        >
+          {uploading ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> جارِ التفريغ...</>
+          ) : (
+            <><Upload className="h-4 w-4" /> رفع ملف صوتي</>
           )}
         </Button>
 
@@ -208,16 +340,20 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive" />
               </span>
-              <span className="text-sm text-muted-foreground">جارِ التسجيل...</span>
+              <span className="text-xs text-muted-foreground">جارِ التسجيل...</span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+      {uploadedFileName && !uploading && transcript && (
+        <p className="text-xs text-muted-foreground">📁 {uploadedFileName}</p>
+      )}
+
       {transcript && (
-        <div className="space-y-4">
-          <div className="rounded-lg border border-border bg-muted/30 p-4 max-h-48 overflow-y-auto">
-            <p className="text-xs font-medium text-muted-foreground mb-2">📝 نص المحاضرة:</p>
+        <div className="space-y-3">
+          <div className="rounded-lg border border-border bg-muted/30 p-4 max-h-40 overflow-y-auto">
+            <p className="text-xs font-medium text-muted-foreground mb-1.5">📝 نص المحاضرة:</p>
             <p className="text-sm leading-relaxed whitespace-pre-wrap" dir="rtl">{transcript}</p>
           </div>
 
@@ -229,22 +365,22 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
                 onClick={() => handleAIAction(action.id)}
                 disabled={aiLoading}
                 variant={activeAction === action.id ? "default" : "outline"}
-                className="gap-2 text-xs h-10"
+                className="gap-2 text-xs h-9"
+                size="sm"
               >
                 {aiLoading && activeAction === action.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <action.icon className={`h-4 w-4 ${activeAction !== action.id ? action.color : ""}`} />
+                  <action.icon className="h-3.5 w-3.5" />
                 )}
                 {action.label}
               </Button>
             ))}
           </div>
 
-          {/* Send to tools */}
           {onTranscriptReady && (
-            <Button onClick={sendToParent} variant="ghost" className="w-full gap-2 text-xs">
-              <FileText className="h-4 w-4" />
+            <Button onClick={sendToParent} variant="ghost" size="sm" className="w-full gap-2 text-xs">
+              <FileText className="h-3.5 w-3.5" />
               أرسل النص لأدوات الذكاء الاصطناعي
             </Button>
           )}
@@ -255,13 +391,24 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-xl border border-primary/20 bg-primary/5 p-4 max-h-96 overflow-y-auto"
+                className="rounded-xl border border-primary/20 bg-primary/5 p-4 max-h-80 overflow-y-auto"
               >
-                <p className="text-xs font-medium text-primary mb-3">
-                  {activeAction === "lecture_summary" && "📋 تلخيص المحاضرة:"}
-                  {activeAction === "lecture_explain" && "💡 شرح المحاضرة:"}
-                  {activeAction === "lecture_notes" && "📌 ملاحظات المحاضرة:"}
-                </p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-medium text-primary">
+                    {activeAction === "lecture_summary" && "📋 تلخيص المحاضرة:"}
+                    {activeAction === "lecture_explain" && "💡 شرح المحاضرة:"}
+                    {activeAction === "lecture_notes" && "📌 ملاحظات المحاضرة:"}
+                  </p>
+                  <Button
+                    onClick={exportToPDF}
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 text-xs h-7 text-primary hover:text-primary"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    تصدير PDF
+                  </Button>
+                </div>
                 <div className="text-sm leading-relaxed prose prose-sm max-w-none" dir="rtl">
                   <ReactMarkdown>{aiResult}</ReactMarkdown>
                 </div>
