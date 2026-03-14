@@ -216,25 +216,44 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
 
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-    // Load Arabic-compatible font workaround: use simple text rendering
+    // Add Arabic font
+    doc.addFileToVFS("Amiri-Regular.ttf", AMIRI_FONT_BASE64);
+    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+    doc.setFont("Amiri");
+
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
     const maxWidth = pageWidth - margin * 2;
-    let y = 20;
+    let y = 25;
 
     // Title
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
     const titleLabel =
-      activeAction === "lecture_summary" ? "Lecture Summary" :
-      activeAction === "lecture_explain" ? "Lecture Explanation" :
-      activeAction === "lecture_notes" ? "Lecture Notes" : "Transcript";
+      activeAction === "lecture_summary" ? "تلخيص المحاضرة" :
+      activeAction === "lecture_explain" ? "شرح المحاضرة" :
+      activeAction === "lecture_notes" ? "ملاحظات المحاضرة" : "تفريغ المحاضرة";
     doc.text(titleLabel, pageWidth / 2, y, { align: "center" });
-    y += 15;
+    y += 5;
 
-    // Content - strip markdown
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
+    // Divider line
+    doc.setDrawColor(0, 150, 136);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 10;
+
+    // Date
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    const dateStr = new Date().toLocaleDateString("ar-SA", {
+      year: "numeric", month: "long", day: "numeric",
+    });
+    doc.text(dateStr, pageWidth - margin, y, { align: "right" });
+    y += 10;
+
+    // Content - strip markdown and render RTL
+    doc.setFontSize(12);
+    doc.setTextColor(30);
     const content = aiResult || transcript;
     const cleanText = content
       .replace(/[#*_~`]/g, "")
@@ -243,22 +262,23 @@ export default function AudioRecorder({ onTranscriptReady }: AudioRecorderProps)
     const lines = doc.splitTextToSize(cleanText, maxWidth);
 
     for (const line of lines) {
-      if (y > doc.internal.pageSize.getHeight() - 20) {
+      if (y > pageHeight - 25) {
         doc.addPage();
         y = 20;
       }
-      doc.text(line, margin, y);
-      y += 6;
+      // RTL: align text to the right
+      doc.text(line, pageWidth - margin, y, { align: "right" });
+      y += 7;
     }
 
-    // Footer
+    // Footer on each page
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150);
-      doc.text(`Page ${i} / ${pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
-      doc.text("Athar Platform", margin, doc.internal.pageSize.getHeight() - 10);
+      doc.text(`${i} / ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+      doc.text("منصة أثر", pageWidth - margin, pageHeight - 10, { align: "right" });
     }
 
     doc.save(`athar-${activeAction || "transcript"}-${Date.now()}.pdf`);
