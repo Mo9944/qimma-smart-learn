@@ -13,6 +13,9 @@ import Analytics from "./pages/Analytics";
 import Achievements from "./pages/Achievements";
 import TimeManagement from "./pages/TimeManagement";
 import RiasecTest from "./pages/RiasecTest";
+import Habits from "./pages/Habits";
+import LearningPlan from "./pages/LearningPlan";
+import SmartSearch from "./pages/SmartSearch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
