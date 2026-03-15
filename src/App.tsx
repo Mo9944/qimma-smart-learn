@@ -13,6 +13,9 @@ import Analytics from "./pages/Analytics";
 import Achievements from "./pages/Achievements";
 import TimeManagement from "./pages/TimeManagement";
 import RiasecTest from "./pages/RiasecTest";
+import Habits from "./pages/Habits";
+import LearningPlan from "./pages/LearningPlan";
+import SmartSearch from "./pages/SmartSearch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +40,9 @@ const App = () => (
           <Route path="/dashboard/achievements" element={<Page><Achievements /></Page>} />
           <Route path="/dashboard/time" element={<Page><TimeManagement /></Page>} />
           <Route path="/dashboard/riasec" element={<Page><RiasecTest /></Page>} />
+          <Route path="/dashboard/habits" element={<Page><Habits /></Page>} />
+          <Route path="/dashboard/learning-plan" element={<Page><LearningPlan /></Page>} />
+          <Route path="/dashboard/smart-search" element={<Page><SmartSearch /></Page>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

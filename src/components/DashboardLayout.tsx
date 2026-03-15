@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
-  Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass
+  Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass,
+  Repeat, GraduationCap, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,9 @@ const navItems = [
   { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
   { icon: Compass, label: "اختبار الشخصية", path: "/dashboard/riasec" },
   { icon: Brain, label: "أدوات AI", path: "/dashboard/ai" },
+  { icon: Search, label: "البحث الذكي", path: "/dashboard/smart-search" },
+  { icon: GraduationCap, label: "خطة التعلم", path: "/dashboard/learning-plan" },
+  { icon: Repeat, label: "العادات", path: "/dashboard/habits" },
   { icon: BookOpen, label: "المواد", path: "/dashboard/subjects" },
   { icon: FileText, label: "الاختبارات", path: "/dashboard/quizzes" },
   { icon: Clock, label: "تنظيم الوقت", path: "/dashboard/time" },
