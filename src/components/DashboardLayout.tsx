@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
-  Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass
+  Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass,
+  Repeat, GraduationCap, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
