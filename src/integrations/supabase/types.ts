@@ -65,6 +65,139 @@ export type Database = {
           },
         ]
       }
+      habit_progress: {
+        Row: {
+          completed: boolean
+          created_at: string | null
+          date: string
+          habit_id: string
+          id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string | null
+          date?: string
+          habit_id: string
+          id?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string | null
+          date?: string
+          habit_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_progress_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          created_at: string | null
+          days_per_week: number
+          description: string | null
+          id: string
+          name: string
+          reminder_time: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          days_per_week?: number
+          description?: string | null
+          id?: string
+          name: string
+          reminder_time?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string | null
+          days_per_week?: number
+          description?: string | null
+          id?: string
+          name?: string
+          reminder_time?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_plans: {
+        Row: {
+          created_at: string | null
+          daily_time: number
+          duration: string
+          id: string
+          plan_content: string | null
+          user_goal: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          daily_time?: number
+          duration?: string
+          id?: string
+          plan_content?: string | null
+          user_goal: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string | null
+          daily_time?: number
+          duration?: string
+          id?: string
+          plan_content?: string | null
+          user_goal?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_tasks: {
+        Row: {
+          created_at: string | null
+          day_number: number | null
+          description: string | null
+          id: string
+          plan_id: string
+          status: string
+          title: string
+          week_number: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_number?: number | null
+          description?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          title: string
+          week_number?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          day_number?: number | null
+          description?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          title?: string
+          week_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_tasks_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "learning_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           completed: boolean | null
@@ -231,6 +364,30 @@ export type Database = {
           score_i?: number
           score_r?: number
           score_s?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      search_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          query: string
+          response: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          query: string
+          response?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          query?: string
+          response?: string | null
           user_id?: string
         }
         Relationships: []
