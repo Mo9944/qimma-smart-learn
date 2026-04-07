@@ -9,6 +9,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AudioRecorder from "@/components/AudioRecorder";
+import PdfUploader from "@/components/PdfUploader";
 import ReactMarkdown from "react-markdown";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tools`;
@@ -176,7 +177,10 @@ export default function AITools() {
             ))}
           </div>
 
-          <AudioRecorder onTranscriptReady={(text) => { setInput(text); setActiveTool("summary"); }} />
+          <div className="grid sm:grid-cols-2 gap-3">
+            <PdfUploader onTextExtracted={(text) => { setInput(text); }} />
+            <AudioRecorder onTranscriptReady={(text) => { setInput(text); setActiveTool("summary"); }} />
+          </div>
 
           <div className="grid lg:grid-cols-2 gap-4">
             <div className="space-y-3">
