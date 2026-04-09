@@ -37,7 +37,7 @@ export default function Quizzes() {
   const [recording, setRecording] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const recognitionRef = useState<any>(null);
+  const recognitionRef = useRef<any>(null);
 
   const { data: subjects = [] } = useQuery({
     queryKey: ["subjects"],
