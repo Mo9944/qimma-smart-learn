@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -37,7 +37,7 @@ export default function Quizzes() {
   const [recording, setRecording] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const recognitionRef = useState<any>(null);
+  const recognitionRef = useRef<any>(null);
 
   const { data: subjects = [] } = useQuery({
     queryKey: ["subjects"],
@@ -98,14 +98,13 @@ export default function Quizzes() {
     };
     recognition.onerror = () => setRecording(false);
     recognition.onend = () => setRecording(false);
-    (recognitionRef as any)[1](recognition);
+    recognitionRef.current = recognition;
     recognition.start();
     setRecording(true);
   };
 
   const stopRecording = () => {
-    const rec = (recognitionRef as any)[0];
-    if (rec) rec.stop();
+    if (recognitionRef.current) recognitionRef.current.stop();
     setRecording(false);
   };
 
