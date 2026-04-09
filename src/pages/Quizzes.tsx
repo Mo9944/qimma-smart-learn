@@ -98,14 +98,13 @@ export default function Quizzes() {
     };
     recognition.onerror = () => setRecording(false);
     recognition.onend = () => setRecording(false);
-    (recognitionRef as any)[1](recognition);
+    recognitionRef.current = recognition;
     recognition.start();
     setRecording(true);
   };
 
   const stopRecording = () => {
-    const rec = (recognitionRef as any)[0];
-    if (rec) rec.stop();
+    if (recognitionRef.current) recognitionRef.current.stop();
     setRecording(false);
   };
 
