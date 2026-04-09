@@ -16,6 +16,7 @@ import RiasecTest from "./pages/RiasecTest";
 import Habits from "./pages/Habits";
 import LearningPlan from "./pages/LearningPlan";
 import SmartSearch from "./pages/SmartSearch";
+import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
