@@ -44,6 +44,7 @@ const App = () => (
           <Route path="/dashboard/habits" element={<Page><Habits /></Page>} />
           <Route path="/dashboard/learning-plan" element={<Page><LearningPlan /></Page>} />
           <Route path="/dashboard/smart-search" element={<Page><SmartSearch /></Page>} />
+          <Route path="/install" element={<InstallApp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
