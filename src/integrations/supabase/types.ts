@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      career_assessments: {
+        Row: {
+          created_at: string | null
+          id: string
+          result_code: string | null
+          result_description: string | null
+          results: Json
+          test_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          result_code?: string | null
+          result_description?: string | null
+          results?: Json
+          test_type: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          result_code?: string | null
+          result_description?: string | null
+          results?: Json
+          test_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       files: {
         Row: {
           created_at: string | null
