@@ -14,6 +14,7 @@ import Achievements from "./pages/Achievements";
 import TimeManagement from "./pages/TimeManagement";
 import RiasecTest from "./pages/RiasecTest";
 import CareerCompass from "./pages/CareerCompass";
+import CareerPaths from "./pages/CareerPaths";
 import Habits from "./pages/Habits";
 import LearningPlan from "./pages/LearningPlan";
 import SmartSearch from "./pages/SmartSearch";
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/dashboard/time" element={<Page><TimeManagement /></Page>} />
           <Route path="/dashboard/riasec" element={<Page><RiasecTest /></Page>} />
           <Route path="/dashboard/career-compass" element={<Page><CareerCompass /></Page>} />
+          <Route path="/dashboard/career-paths" element={<Page><CareerPaths /></Page>} />
           <Route path="/dashboard/habits" element={<Page><Habits /></Page>} />
           <Route path="/dashboard/learning-plan" element={<Page><LearningPlan /></Page>} />
           <Route path="/dashboard/smart-search" element={<Page><SmartSearch /></Page>} />

@@ -11,6 +11,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
   { icon: Compass, label: "اختبار الشخصية", path: "/dashboard/riasec" },
   { icon: Target, label: "البوصلة المهنية", path: "/dashboard/career-compass" },
+  { icon: Compass, label: "المسارات المهنية", path: "/dashboard/career-paths" },
   { icon: Brain, label: "أدوات AI", path: "/dashboard/ai" },
   { icon: Search, label: "البحث الذكي", path: "/dashboard/smart-search" },
   { icon: GraduationCap, label: "خطة التعلم", path: "/dashboard/learning-plan" },
