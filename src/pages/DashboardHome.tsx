@@ -1,4 +1,4 @@
-import { BookOpen, Brain, FileText, BarChart3, Trophy, Clock, Target, Compass, Sparkles, TrendingUp, Flame, Download, Repeat } from "lucide-react";
+import { BookOpen, Brain, FileText, BarChart3, Clock, Target, Compass, Sparkles, Repeat, Route } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
@@ -7,11 +7,15 @@ import { useQuery } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
 import AskAboutMe from "@/components/AskAboutMe";
 import SmartPdfReport from "@/components/SmartPdfReport";
+import WorkReadinessGauge from "@/components/dashboard/WorkReadinessGauge";
+import SkillsRadar from "@/components/dashboard/SkillsRadar";
+import WeeklyCommitment from "@/components/dashboard/WeeklyCommitment";
+import LearningHoursChart from "@/components/dashboard/LearningHoursChart";
+import ProgressTimeline from "@/components/dashboard/ProgressTimeline";
 
 const typeNames: Record<string, string> = {
   R: "واقعي", I: "بحثي", A: "فني", S: "اجتماعي", E: "مبادر", C: "تقليدي"
 };
-
 const careerMap: Record<string, string> = {
   R: "هندسة وتقنية", I: "بحث علمي وطب", A: "تصميم وإبداع",
   S: "تعليم وإرشاد", E: "إدارة وريادة أعمال", C: "محاسبة وتنظيم"
@@ -30,7 +34,7 @@ export default function DashboardHome() {
   const { data: quizzes = [] } = useQuery({
     queryKey: ["quizzes-home"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("quizzes").select("*").order("created_at", { ascending: false }).limit(20);
+      const { data, error } = await supabase.from("quizzes").select("*").order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       return data;
     },
@@ -57,7 +61,6 @@ export default function DashboardHome() {
   const { data: habitProgress = [] } = useQuery({
     queryKey: ["habit-progress-home"],
     queryFn: async () => {
-      const today = format(new Date(), "yyyy-MM-dd");
       const thirtyDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd");
       const { data, error } = await supabase.from("habit_progress").select("*").gte("date", thirtyDaysAgo);
       if (error) throw error;
@@ -65,6 +68,25 @@ export default function DashboardHome() {
     },
   });
 
+  const { data: careerAssessments = [] } = useQuery({
+    queryKey: ["career-assessments-home"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("career_assessments").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: learningPlans = [] } = useQuery({
+    queryKey: ["learning-plans-home"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("learning_plans").select("*").order("created_at", { ascending: false }).limit(1);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // === Calculations ===
   const totalQuizzes = quizzes.length;
   const avgScore = totalQuizzes > 0
     ? Math.round(quizzes.reduce((sum, q) => sum + ((q.score || 0) / (q.total_questions || 1)) * 100, 0) / totalQuizzes)
@@ -73,44 +95,106 @@ export default function DashboardHome() {
   const lastRiasec = riasecResults[0];
   const today = format(new Date(), "yyyy-MM-dd");
   const todayCompleted = habits.filter(h => habitProgress.some(p => p.habit_id === h.id && p.date === today)).length;
+
   const habitRate = habits.length > 0
     ? Math.round(habits.reduce((s, h) => s + (habitProgress.filter(p => p.habit_id === h.id).length / 30) * 100, 0) / habits.length)
     : 0;
 
-  // Weekly focus hours from quiz time_taken
-  const weekQuizzes = quizzes.filter(q => {
-    if (!q.created_at) return false;
-    return new Date(q.created_at) > subDays(new Date(), 7);
+  // Weekly quiz data
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = subDays(new Date(), 6 - i);
+    return { date: format(d, "yyyy-MM-dd"), dayOfWeek: d.getDay() };
   });
-  const weekMinutes = Math.round(weekQuizzes.reduce((s, q) => s + (q.time_taken || 0), 0) / 60);
+  const dayLabels = ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"];
 
-  // Development score
-  const devScore = Math.round(
-    (lastRiasec ? 25 : 0) +
-    (avgScore > 0 ? Math.min(avgScore * 0.25, 25) : 0) +
-    (habitRate > 0 ? Math.min(habitRate * 0.25, 25) : 0) +
-    (subjects.length > 0 ? Math.min(subjects.length * 5, 25) : 0)
+  const weeklyLearningData = weekDays.map(wd => {
+    const dayQuizzes = quizzes.filter(q => q.created_at && format(new Date(q.created_at), "yyyy-MM-dd") === wd.date);
+    const minutes = Math.round(dayQuizzes.reduce((s, q) => s + (q.time_taken || 0), 0) / 60);
+    return { label: dayLabels[wd.dayOfWeek], minutes };
+  });
+  const weekTotalMinutes = weeklyLearningData.reduce((s, d) => s + d.minutes, 0);
+
+  // Weekly commitment
+  const weeklyCommitmentDays = weekDays.map(wd => {
+    const dayHabitsDone = habits.filter(h => habitProgress.some(p => p.habit_id === h.id && p.date === wd.date)).length;
+    const score = habits.length > 0 ? Math.round((dayHabitsDone / habits.length) * 100) : 0;
+    return { date: wd.date, label: dayLabels[wd.dayOfWeek], active: dayHabitsDone > 0, score };
+  });
+  const activeDays = weeklyCommitmentDays.filter(d => d.active).length;
+  const weeklyCommitRate = Math.round((activeDays / 7) * 100);
+
+  // Unique assessment types completed
+  const completedTypes = new Set(careerAssessments.map(a => a.test_type));
+  const totalAssessments = 5; // personality, capabilities, strengths, thinking, learning
+
+  // Work readiness score
+  const readinessScore = Math.round(
+    (lastRiasec ? 15 : 0) +
+    (completedTypes.size / totalAssessments) * 25 +
+    (avgScore > 0 ? Math.min(avgScore * 0.2, 20) : 0) +
+    (habitRate > 0 ? Math.min(habitRate * 0.15, 15) : 0) +
+    (subjects.length > 0 ? Math.min(subjects.length * 3, 15) : 0) +
+    (learningPlans.length > 0 ? 10 : 0)
   );
 
-  // Strengths/weaknesses from RIASEC
-  const topTypes = lastRiasec ? lastRiasec.code.split("").slice(0, 3) : [];
-  const scores = lastRiasec ? [
-    { key: "R", value: lastRiasec.score_r },
-    { key: "I", value: lastRiasec.score_i },
-    { key: "A", value: lastRiasec.score_a },
-    { key: "S", value: lastRiasec.score_s },
-    { key: "E", value: lastRiasec.score_e },
-    { key: "C", value: lastRiasec.score_c },
-  ].sort((a, b) => b.value - a.value) : [];
+  // Skills from assessments
+  const skills = (() => {
+    const s: { name: string; level: number; acquired: boolean }[] = [];
+    const latestByType = new Map<string, any>();
+    careerAssessments.forEach(a => {
+      if (!latestByType.has(a.test_type)) latestByType.set(a.test_type, a);
+    });
 
+    const skillMap: Record<string, { names: string[]; key: string }> = {
+      personality: { names: ["الانفتاح", "الضمير", "الاجتماعية", "التوافق", "الاستقرار"], key: "personality" },
+      capabilities: { names: ["القيادة", "التقنية", "التواصل", "التحليل", "الإبداع"], key: "capabilities" },
+      thinking: { names: ["التفكير التحليلي", "التفكير الإبداعي", "التفكير التعاوني"], key: "thinking" },
+      learning: { names: ["التعلم البصري", "التعلم السمعي", "التعلم القرائي", "التعلم الحركي"], key: "learning" },
+    };
+
+    Object.entries(skillMap).forEach(([type, config]) => {
+      const assessment = latestByType.get(type);
+      if (assessment && assessment.results) {
+        const results = typeof assessment.results === 'string' ? JSON.parse(assessment.results) : assessment.results;
+        const scores = Object.values(results) as number[];
+        config.names.forEach((name, i) => {
+          const val = scores[i] ?? 0;
+          const level = Math.round(val * 10);
+          s.push({ name, level, acquired: level >= 50 });
+        });
+      }
+    });
+
+    // If no assessments, show expected skills as missing
+    if (s.length === 0) {
+      ["القيادة", "التقنية", "التواصل", "التحليل", "الإبداع", "التفكير النقدي"].forEach(name =>
+        s.push({ name, level: 0, acquired: false })
+      );
+    }
+    return s;
+  })();
+
+  // Progress milestones
+  const milestones = [
+    { label: "إكمال اختبار الشخصية", done: !!lastRiasec, icon: "🧠" },
+    { label: "إكمال البوصلة المهنية", done: completedTypes.size >= 3, icon: "🧭" },
+    { label: "إضافة مادة دراسية", done: subjects.length > 0, icon: "📚" },
+    { label: "إكمال 5 اختبارات", done: totalQuizzes >= 5, icon: "📝" },
+    { label: "بناء عادات يومية", done: habits.length >= 3, icon: "🔄" },
+    { label: "إنشاء خطة تعلم", done: learningPlans.length > 0, icon: "🎯" },
+  ];
+  const overallProgress = Math.round((milestones.filter(m => m.done).length / milestones.length) * 100);
+
+  const topTypes = lastRiasec ? lastRiasec.code.split("").slice(0, 3) : [];
+
+  // Quick stats
   const quickStats = [
     { icon: Compass, label: "الشخصية", value: lastRiasec?.code || "—", sub: "نمطك", color: "text-primary", bg: "bg-primary/10" },
-    { icon: Target, label: "التطور", value: `${devScore}%`, sub: "درجة التطور", color: "text-success", bg: "bg-success/10" },
+    { icon: Target, label: "الجاهزية", value: `${readinessScore}%`, sub: "لسوق العمل", color: "text-success", bg: "bg-success/10" },
     { icon: Repeat, label: "العادات", value: `${todayCompleted}/${habits.length}`, sub: "اليوم", color: "text-warning", bg: "bg-warning/10" },
     { icon: FileText, label: "المعدل", value: `${avgScore}%`, sub: `${totalQuizzes} اختبار`, color: "text-info", bg: "bg-info/10" },
   ];
 
-  // Daily recommendations
   const dailyRecs = [
     { emoji: "🎯", text: habitRate < 50 ? "حاول إكمال عاداتك اليوم للوصول لنسبة أعلى" : "أداؤك ممتاز! حافظ على عاداتك" },
     { emoji: "📚", text: avgScore < 70 ? "راجع المواد التي حصلت فيها على درجات منخفضة" : "جرّب مادة جديدة لتوسيع معرفتك" },
@@ -119,7 +203,7 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-6">
-      {/* Header with actions */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold font-display">مرحبًا بك في أثر 👋</h1>
@@ -165,90 +249,17 @@ export default function DashboardHome() {
         </motion.div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-5">
-        {/* Section 1: Personality Summary */}
-        {lastRiasec && (
-          <div className="rounded-xl border border-border bg-card p-5 shadow-card">
-            <div className="flex items-center gap-2 mb-4">
-              <Compass className="h-4 w-4 text-primary" />
-              <h2 className="font-semibold">ملخص الشخصية</h2>
-            </div>
-            <div className="space-y-3">
-              <div className="text-center py-2">
-                <div className="text-3xl font-bold text-primary">{lastRiasec.code}</div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {lastRiasec.code.split("").map((c: string) => typeNames[c] || c).join(" - ")}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="font-medium mb-1">أفضل مسار مهني:</p>
-                <p className="text-muted-foreground">{careerMap[topTypes[0]] || "—"}</p>
-              </div>
-              <div>
-                <p className="font-medium text-sm mb-2">درجة التطور العامة:</p>
-                <Progress value={devScore} className="h-2" />
-                <p className="text-xs text-muted-foreground mt-1 text-left">{devScore}%</p>
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Row: Work Readiness + Weekly Commitment + Learning Hours */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <WorkReadinessGauge score={readinessScore} />
+        <WeeklyCommitment days={weeklyCommitmentDays} weeklyRate={weeklyCommitRate} />
+        <LearningHoursChart data={weeklyLearningData} totalMinutes={weekTotalMinutes} />
+      </div>
 
-        {/* Section 2: Performance */}
-        <div className="rounded-xl border border-border bg-card p-5 shadow-card">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="h-4 w-4 text-primary" />
-            <h2 className="font-semibold">الأداء</h2>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">ساعات التركيز (أسبوعي)</span>
-              <span className="font-bold">{weekMinutes} دقيقة</span>
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="text-muted-foreground">معدل الالتزام بالعادات</span>
-                <span className="font-medium">{habitRate}%</span>
-              </div>
-              <Progress value={habitRate} className="h-2" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="text-muted-foreground">معدل الاختبارات</span>
-                <span className="font-medium">{avgScore}%</span>
-              </div>
-              <Progress value={avgScore} className="h-2" />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">المهام المكتملة</span>
-              <span className="font-bold">{todayCompleted}/{habits.length}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 3: Strengths/Weaknesses */}
-        <div className="rounded-xl border border-border bg-card p-5 shadow-card">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <h2 className="font-semibold">نقاط القوة والضعف</h2>
-          </div>
-          {scores.length > 0 ? (
-            <div className="space-y-3">
-              {scores.map((s, i) => (
-                <div key={s.key}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className={i < 3 ? "font-medium text-success" : "text-muted-foreground"}>
-                      {i < 3 ? "💪" : "📈"} {typeNames[s.key]}
-                    </span>
-                    <span className="text-xs">{s.value * 10}%</span>
-                  </div>
-                  <Progress value={s.value * 10} className="h-1.5" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">أكمل اختبار الشخصية أولاً</p>
-          )}
-        </div>
+      {/* Row: Skills + Progress Timeline */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <SkillsRadar skills={skills} />
+        <ProgressTimeline milestones={milestones} overallProgress={overallProgress} />
       </div>
 
       {/* Daily Recommendations */}
@@ -331,7 +342,7 @@ export default function DashboardHome() {
           { icon: Compass, label: "اختبار الشخصية", path: "/dashboard/riasec", color: "text-primary" },
           { icon: Brain, label: "أدوات AI", path: "/dashboard/ai", color: "text-info" },
           { icon: Clock, label: "تنظيم الوقت", path: "/dashboard/time", color: "text-warning" },
-          { icon: BarChart3, label: "التقارير", path: "/dashboard/analytics", color: "text-success" },
+          { icon: Route, label: "المسارات المهنية", path: "/dashboard/career-paths", color: "text-success" },
         ].map((a) => (
           <Link key={a.label} to={a.path}
             className="flex items-center gap-2.5 rounded-xl border border-border bg-card p-3.5 shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all">
