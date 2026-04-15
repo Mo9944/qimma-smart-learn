@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
   Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass, Route,
-  Repeat, GraduationCap, Search, Radar
+  Repeat, GraduationCap, Search, Radar, Map
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
