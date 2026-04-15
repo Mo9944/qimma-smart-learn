@@ -18,6 +18,7 @@ import CareerPaths from "./pages/CareerPaths";
 import Habits from "./pages/Habits";
 import LearningPlan from "./pages/LearningPlan";
 import SmartSearch from "./pages/SmartSearch";
+import SkillGapRadar from "./pages/SkillGapRadar";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
