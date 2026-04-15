@@ -18,6 +18,7 @@ import CareerPaths from "./pages/CareerPaths";
 import Habits from "./pages/Habits";
 import LearningPlan from "./pages/LearningPlan";
 import SmartSearch from "./pages/SmartSearch";
+import SkillGapRadar from "./pages/SkillGapRadar";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/dashboard/habits" element={<Page><Habits /></Page>} />
           <Route path="/dashboard/learning-plan" element={<Page><LearningPlan /></Page>} />
           <Route path="/dashboard/smart-search" element={<Page><SmartSearch /></Page>} />
+          <Route path="/dashboard/skill-gap" element={<Page><SkillGapRadar /></Page>} />
           <Route path="/install" element={<InstallApp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
