@@ -308,6 +308,45 @@ export type Database = {
         }
         Relationships: []
       }
+      psych_assessments: {
+        Row: {
+          anxiety: number
+          burnout_risk: number
+          confidence: number
+          created_at: string
+          decision_ability: number
+          id: string
+          raw_answers: Json | null
+          stress_tolerance: number
+          thinking_style: string
+          user_id: string
+        }
+        Insert: {
+          anxiety?: number
+          burnout_risk?: number
+          confidence?: number
+          created_at?: string
+          decision_ability?: number
+          id?: string
+          raw_answers?: Json | null
+          stress_tolerance?: number
+          thinking_style?: string
+          user_id?: string
+        }
+        Update: {
+          anxiety?: number
+          burnout_risk?: number
+          confidence?: number
+          created_at?: string
+          decision_ability?: number
+          id?: string
+          raw_answers?: Json | null
+          stress_tolerance?: number
+          thinking_style?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       quizzes: {
         Row: {
           created_at: string | null
