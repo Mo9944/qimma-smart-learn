@@ -55,6 +55,9 @@ const App = () => (
           <Route path="/dashboard/smart-search" element={<Page><SmartSearch /></Page>} />
           <Route path="/dashboard/skill-gap" element={<Page><SkillGapRadar /></Page>} />
           <Route path="/dashboard/future-map" element={<Page><FutureMap /></Page>} />
+          <Route path="/dashboard/psych-insight" element={<Page><PsychInsight /></Page>} />
+          <Route path="/dashboard/balance-map" element={<Page><BalanceMap /></Page>} />
+          <Route path="/dashboard/ai-mentor" element={<Page><AIMentor /></Page>} />
           <Route path="/install" element={<InstallApp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
