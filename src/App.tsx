@@ -20,6 +20,9 @@ import LearningPlan from "./pages/LearningPlan";
 import SmartSearch from "./pages/SmartSearch";
 import SkillGapRadar from "./pages/SkillGapRadar";
 import FutureMap from "./pages/FutureMap";
+import PsychInsight from "./pages/PsychInsight";
+import BalanceMap from "./pages/BalanceMap";
+import AIMentor from "./pages/AIMentor";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
