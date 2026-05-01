@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
   Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass, Route,
-  Repeat, GraduationCap, Search, Radar, Map
+  Repeat, GraduationCap, Search, Radar, Map, Heart, Scale, MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,9 @@ const navItems = [
   { icon: Route, label: "المسارات المهنية", path: "/dashboard/career-paths" },
   { icon: Radar, label: "فجوة المهارات", path: "/dashboard/skill-gap" },
   { icon: Map, label: "خريطة المستقبل", path: "/dashboard/future-map" },
+  { icon: Heart, label: "التحليل النفسي", path: "/dashboard/psych-insight" },
+  { icon: Scale, label: "خريطة التوازن", path: "/dashboard/balance-map" },
+  { icon: MessageCircle, label: "المرشد الذكي", path: "/dashboard/ai-mentor" },
   { icon: Brain, label: "أدوات AI", path: "/dashboard/ai" },
   { icon: Search, label: "البحث الذكي", path: "/dashboard/smart-search" },
   { icon: GraduationCap, label: "خطة التعلم", path: "/dashboard/learning-plan" },
