@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3, 
   Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass, Route,
-  Repeat, GraduationCap, Search, Radar, Map, Heart, Scale, MessageCircle
+  Repeat, GraduationCap, Search, Radar, Map, Heart, Scale, MessageCircle, Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,7 @@ const navItems = [
   { icon: Heart, label: "التحليل النفسي", path: "/dashboard/psych-insight" },
   { icon: Scale, label: "خريطة التوازن", path: "/dashboard/balance-map" },
   { icon: MessageCircle, label: "المرشد الذكي", path: "/dashboard/ai-mentor" },
+  { icon: Globe, label: "مهارات المستقبل", path: "/dashboard/future-skills" },
   { icon: Brain, label: "أدوات AI", path: "/dashboard/ai" },
   { icon: Search, label: "البحث الذكي", path: "/dashboard/smart-search" },
   { icon: GraduationCap, label: "خطة التعلم", path: "/dashboard/learning-plan" },
