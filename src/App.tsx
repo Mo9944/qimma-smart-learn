@@ -24,6 +24,7 @@ import PsychInsight from "./pages/PsychInsight";
 import BalanceMap from "./pages/BalanceMap";
 import AIMentor from "./pages/AIMentor";
 import FutureSkillsHub from "./pages/FutureSkillsHub";
+import MySkillsMatch from "./pages/MySkillsMatch";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
@@ -60,6 +61,7 @@ const App = () => (
           <Route path="/dashboard/balance-map" element={<Page><BalanceMap /></Page>} />
           <Route path="/dashboard/ai-mentor" element={<Page><AIMentor /></Page>} />
           <Route path="/dashboard/future-skills" element={<Page><FutureSkillsHub /></Page>} />
+          <Route path="/dashboard/skills-match" element={<Page><MySkillsMatch /></Page>} />
           <Route path="/install" element={<InstallApp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
