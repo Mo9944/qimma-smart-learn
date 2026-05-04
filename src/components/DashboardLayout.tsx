@@ -18,6 +18,7 @@ const navItems = [
   { icon: Scale, label: "خريطة التوازن", path: "/dashboard/balance-map" },
   { icon: MessageCircle, label: "المرشد الذكي", path: "/dashboard/ai-mentor" },
   { icon: Globe, label: "مهارات المستقبل", path: "/dashboard/future-skills" },
+  { icon: Target, label: "تطابقك مع المهارات", path: "/dashboard/skills-match" },
   { icon: Brain, label: "أدوات AI", path: "/dashboard/ai" },
   { icon: Search, label: "البحث الذكي", path: "/dashboard/smart-search" },
   { icon: GraduationCap, label: "خطة التعلم", path: "/dashboard/learning-plan" },
