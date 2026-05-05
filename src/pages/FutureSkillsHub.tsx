@@ -19,8 +19,29 @@ import {
 import {
   Globe, TrendingUp, TrendingDown, Minus, Newspaper, Sparkles,
   MapPin, Briefcase, Wifi, DollarSign, Target, Loader2, Download, GitCompare, Brain,
+  BarChart3, Trophy,
 } from "lucide-react";
 import jsPDF from "jspdf";
+
+// Map RIASEC top types -> skill ids the user is likely strong in
+function deriveUserSkillIds(riasec: any, habitsCount: number): string[] {
+  const ids: string[] = [];
+  if (riasec) {
+    const scores: Record<string, number> = {
+      R: riasec.score_r, I: riasec.score_i, A: riasec.score_a,
+      S: riasec.score_s, E: riasec.score_e, C: riasec.score_c,
+    };
+    const top = Object.entries(scores).sort((a, b) => b[1] - a[1]).slice(0, 3).map(x => x[0]);
+    if (top.includes("I")) ids.push("python", "data_science", "critical_thinking", "ai_literacy");
+    if (top.includes("R")) ids.push("devops", "robotic_automation", "problem_solving");
+    if (top.includes("A")) ids.push("ux_design", "graphic_design", "creativity");
+    if (top.includes("S")) ids.push("communication", "mentoring", "emotional_intel", "teamwork");
+    if (top.includes("E")) ids.push("leadership", "negotiation", "entrepreneurship", "decision_making");
+    if (top.includes("C")) ids.push("sql", "finance_analysis", "time_mgmt");
+  }
+  if (habitsCount >= 3) ids.push("self_management", "learning_agility", "adaptability");
+  return Array.from(new Set(ids));
+}
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
@@ -81,6 +102,58 @@ export default function FutureSkillsHub() {
   const [matchTarget, setMatchTarget] = useState<string>("");
   const [matchAI, setMatchAI] = useState("");
   const [loadingMatch, setLoadingMatch] = useState(false);
+
+  // AI Market Analyzer
+  type AnalyzerCountry = { iso3: string; name: string; nameAr: string; matchPct: number; gaps: string[]; salary: number; demand: number };
+  const [analyzerResults, setAnalyzerResults] = useState<AnalyzerCountry[] | null>(null);
+  const [analyzerStrengths, setAnalyzerStrengths] = useState<string[]>([]);
+  const [analyzerAI, setAnalyzerAI] = useState("");
+  const [loadingAnalyzer, setLoadingAnalyzer] = useState(false);
+
+  const runMarketAnalyzer = async () => {
+    setLoadingAnalyzer(true);
+    setAnalyzerAI("");
+    try {
+      const [{ data: riasec }, { data: habits }] = await Promise.all([
+        supabase.from("riasec_results").select("*").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("habits").select("id"),
+      ]);
+      const userSkillIds = deriveUserSkillIds(riasec, habits?.length || 0);
+      const strengthsAr = userSkillIds.map(id => getSkillById(id)?.nameAr || id);
+      setAnalyzerStrengths(strengthsAr);
+
+      const results: AnalyzerCountry[] = COUNTRIES.map(c => {
+        const required = [...c.topHardSkills, ...c.topSoftSkills];
+        const matched = required.filter(r => userSkillIds.includes(r));
+        const pct = required.length ? Math.round((matched.length / required.length) * 100) : 0;
+        const realPct = Math.max(pct, userSkillIds.length ? 20 : 10);
+        const gaps = required.filter(r => !userSkillIds.includes(r)).slice(0, 5).map(id => getSkillById(id)?.nameAr || id);
+        return { iso3: c.iso3, name: c.name, nameAr: c.nameAr, matchPct: realPct, gaps, salary: c.avgSalaryUsd, demand: c.demandIndex };
+      }).sort((a, b) => b.matchPct - a.matchPct);
+      setAnalyzerResults(results);
+
+      // Ask AI for a strategic recommendation based on top 3 countries
+      const top3 = results.slice(0, 3);
+      const { data, error } = await supabase.functions.invoke("future-insights", {
+        body: {
+          mode: "country_match",
+          payload: {
+            countryName: top3.map(t => t.nameAr).join(" / "),
+            matchPct: top3[0]?.matchPct || 0,
+            userStrengths: strengthsAr.slice(0, 8).length ? strengthsAr.slice(0, 8) : ["لا توجد بيانات كافية"],
+            gaps: Array.from(new Set(top3.flatMap(t => t.gaps))).slice(0, 8),
+          },
+        },
+      });
+      if (error) throw error;
+      setAnalyzerAI(data?.content || "");
+      toast.success("تم تحليل السوق العالمي");
+    } catch (e: any) {
+      toast.error(e.message || "تعذّر التحليل");
+    } finally {
+      setLoadingAnalyzer(false);
+    }
+  };
 
   // Filtered skills
   const filteredSkills = useMemo(() => {
@@ -254,11 +327,12 @@ export default function FutureSkillsHub() {
       </motion.div>
 
       <Tabs defaultValue="news" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
           <TabsTrigger value="news"><Newspaper className="h-4 w-4 ml-1" /> الأخبار</TabsTrigger>
           <TabsTrigger value="skills"><Sparkles className="h-4 w-4 ml-1" /> مؤشر المهارات</TabsTrigger>
           <TabsTrigger value="map"><Globe className="h-4 w-4 ml-1" /> الخريطة العالمية</TabsTrigger>
           <TabsTrigger value="compare"><GitCompare className="h-4 w-4 ml-1" /> مقارنة الدول</TabsTrigger>
+          <TabsTrigger value="analyzer"><BarChart3 className="h-4 w-4 ml-1" /> AI Market Analyzer</TabsTrigger>
         </TabsList>
 
         {/* NEWS */}
@@ -486,6 +560,95 @@ export default function FutureSkillsHub() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 bg-muted/40 rounded-lg whitespace-pre-wrap text-sm leading-relaxed">
                 {compareAI}
               </motion.div>
+            )}
+          </Card>
+        </TabsContent>
+        {/* AI MARKET ANALYZER */}
+        <TabsContent value="analyzer" className="space-y-4">
+          <Card className="p-4 border-2 border-teal-500/30">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+              <div>
+                <h3 className="font-bold flex items-center gap-2"><BarChart3 className="h-5 w-5 text-teal-500" /> AI Market Analyzer</h3>
+                <p className="text-xs text-muted-foreground mt-1">يحلل مهاراتك من اختباراتك وعاداتك ويقارنها بسوق العمل في كل دولة</p>
+              </div>
+              <Button onClick={runMarketAnalyzer} disabled={loadingAnalyzer} className="gradient-primary">
+                {loadingAnalyzer ? <Loader2 className="h-4 w-4 ml-2 animate-spin" /> : <Brain className="h-4 w-4 ml-2" />}
+                حلّل جاهزيتي عالمياً
+              </Button>
+            </div>
+
+            {analyzerStrengths.length > 0 && (
+              <div className="mb-4 p-3 rounded-lg bg-muted/40">
+                <p className="text-xs text-muted-foreground mb-2">مهاراتك المستنتجة من ملفك:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {analyzerStrengths.map(s => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
+                </div>
+              </div>
+            )}
+
+            {analyzerResults && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2 px-3 text-xs text-muted-foreground font-bold">
+                  <div>الدولة</div>
+                  <div className="text-center">نسبة الجاهزية</div>
+                  <div className="text-left">الراتب / الطلب</div>
+                </div>
+                {analyzerResults.map((r, idx) => (
+                  <motion.div
+                    key={r.iso3}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="p-3 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                  >
+                    <div className="grid grid-cols-3 gap-2 items-center">
+                      <div className="flex items-center gap-2">
+                        {idx < 3 && <Trophy className={`h-4 w-4 ${idx === 0 ? "text-yellow-500" : idx === 1 ? "text-gray-400" : "text-amber-700"}`} />}
+                        <div>
+                          <p className="font-bold text-sm">{r.nameAr}</p>
+                          <p className="text-[10px] text-muted-foreground">{r.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${r.matchPct}%` }}
+                            transition={{ duration: 0.6, delay: idx * 0.03 }}
+                            className={`h-full ${r.matchPct >= 60 ? "bg-emerald-500" : r.matchPct >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                          />
+                        </div>
+                        <span className="text-xs font-bold w-9 text-right">{r.matchPct}%</span>
+                      </div>
+                      <div className="text-left text-xs">
+                        <div className="font-bold text-emerald-600">${(r.salary / 1000).toFixed(0)}K</div>
+                        <div className="text-muted-foreground">طلب {r.demand}%</div>
+                      </div>
+                    </div>
+                    {r.gaps.length > 0 && (
+                      <div className="mt-2 pt-2 border-t">
+                        <p className="text-[10px] text-muted-foreground mb-1">فجوات المهارات المقترحة:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {r.gaps.map(g => <span key={g} className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-700 dark:text-rose-300">{g}</span>)}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {analyzerAI && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 bg-teal-500/5 border border-teal-500/30 rounded-lg whitespace-pre-wrap text-sm leading-relaxed">
+                <h4 className="font-bold mb-2 flex items-center gap-1"><Sparkles className="h-4 w-4 text-teal-500" /> توصية الذكاء الاصطناعي</h4>
+                {analyzerAI}
+              </motion.div>
+            )}
+
+            {!analyzerResults && !loadingAnalyzer && (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                اضغط "حلّل جاهزيتي عالمياً" لمقارنة مهاراتك بسوق العمل في 20 دولة
+              </div>
             )}
           </Card>
         </TabsContent>
