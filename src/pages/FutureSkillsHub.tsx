@@ -327,11 +327,12 @@ export default function FutureSkillsHub() {
       </motion.div>
 
       <Tabs defaultValue="news" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
           <TabsTrigger value="news"><Newspaper className="h-4 w-4 ml-1" /> الأخبار</TabsTrigger>
           <TabsTrigger value="skills"><Sparkles className="h-4 w-4 ml-1" /> مؤشر المهارات</TabsTrigger>
           <TabsTrigger value="map"><Globe className="h-4 w-4 ml-1" /> الخريطة العالمية</TabsTrigger>
           <TabsTrigger value="compare"><GitCompare className="h-4 w-4 ml-1" /> مقارنة الدول</TabsTrigger>
+          <TabsTrigger value="analyzer"><BarChart3 className="h-4 w-4 ml-1" /> AI Market Analyzer</TabsTrigger>
         </TabsList>
 
         {/* NEWS */}
