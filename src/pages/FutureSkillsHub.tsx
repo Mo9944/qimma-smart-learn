@@ -563,6 +563,95 @@ export default function FutureSkillsHub() {
             )}
           </Card>
         </TabsContent>
+        {/* AI MARKET ANALYZER */}
+        <TabsContent value="analyzer" className="space-y-4">
+          <Card className="p-4 border-2 border-teal-500/30">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+              <div>
+                <h3 className="font-bold flex items-center gap-2"><BarChart3 className="h-5 w-5 text-teal-500" /> AI Market Analyzer</h3>
+                <p className="text-xs text-muted-foreground mt-1">يحلل مهاراتك من اختباراتك وعاداتك ويقارنها بسوق العمل في كل دولة</p>
+              </div>
+              <Button onClick={runMarketAnalyzer} disabled={loadingAnalyzer} className="gradient-primary">
+                {loadingAnalyzer ? <Loader2 className="h-4 w-4 ml-2 animate-spin" /> : <Brain className="h-4 w-4 ml-2" />}
+                حلّل جاهزيتي عالمياً
+              </Button>
+            </div>
+
+            {analyzerStrengths.length > 0 && (
+              <div className="mb-4 p-3 rounded-lg bg-muted/40">
+                <p className="text-xs text-muted-foreground mb-2">مهاراتك المستنتجة من ملفك:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {analyzerStrengths.map(s => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
+                </div>
+              </div>
+            )}
+
+            {analyzerResults && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2 px-3 text-xs text-muted-foreground font-bold">
+                  <div>الدولة</div>
+                  <div className="text-center">نسبة الجاهزية</div>
+                  <div className="text-left">الراتب / الطلب</div>
+                </div>
+                {analyzerResults.map((r, idx) => (
+                  <motion.div
+                    key={r.iso3}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="p-3 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                  >
+                    <div className="grid grid-cols-3 gap-2 items-center">
+                      <div className="flex items-center gap-2">
+                        {idx < 3 && <Trophy className={`h-4 w-4 ${idx === 0 ? "text-yellow-500" : idx === 1 ? "text-gray-400" : "text-amber-700"}`} />}
+                        <div>
+                          <p className="font-bold text-sm">{r.nameAr}</p>
+                          <p className="text-[10px] text-muted-foreground">{r.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${r.matchPct}%` }}
+                            transition={{ duration: 0.6, delay: idx * 0.03 }}
+                            className={`h-full ${r.matchPct >= 60 ? "bg-emerald-500" : r.matchPct >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                          />
+                        </div>
+                        <span className="text-xs font-bold w-9 text-right">{r.matchPct}%</span>
+                      </div>
+                      <div className="text-left text-xs">
+                        <div className="font-bold text-emerald-600">${(r.salary / 1000).toFixed(0)}K</div>
+                        <div className="text-muted-foreground">طلب {r.demand}%</div>
+                      </div>
+                    </div>
+                    {r.gaps.length > 0 && (
+                      <div className="mt-2 pt-2 border-t">
+                        <p className="text-[10px] text-muted-foreground mb-1">فجوات المهارات المقترحة:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {r.gaps.map(g => <span key={g} className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-700 dark:text-rose-300">{g}</span>)}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {analyzerAI && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 bg-teal-500/5 border border-teal-500/30 rounded-lg whitespace-pre-wrap text-sm leading-relaxed">
+                <h4 className="font-bold mb-2 flex items-center gap-1"><Sparkles className="h-4 w-4 text-teal-500" /> توصية الذكاء الاصطناعي</h4>
+                {analyzerAI}
+              </motion.div>
+            )}
+
+            {!analyzerResults && !loadingAnalyzer && (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                اضغط "حلّل جاهزيتي عالمياً" لمقارنة مهاراتك بسوق العمل في 20 دولة
+              </div>
+            )}
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* News dialog */}
