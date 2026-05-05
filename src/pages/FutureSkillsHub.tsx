@@ -19,8 +19,29 @@ import {
 import {
   Globe, TrendingUp, TrendingDown, Minus, Newspaper, Sparkles,
   MapPin, Briefcase, Wifi, DollarSign, Target, Loader2, Download, GitCompare, Brain,
+  BarChart3, Trophy,
 } from "lucide-react";
 import jsPDF from "jspdf";
+
+// Map RIASEC top types -> skill ids the user is likely strong in
+function deriveUserSkillIds(riasec: any, habitsCount: number): string[] {
+  const ids: string[] = [];
+  if (riasec) {
+    const scores: Record<string, number> = {
+      R: riasec.score_r, I: riasec.score_i, A: riasec.score_a,
+      S: riasec.score_s, E: riasec.score_e, C: riasec.score_c,
+    };
+    const top = Object.entries(scores).sort((a, b) => b[1] - a[1]).slice(0, 3).map(x => x[0]);
+    if (top.includes("I")) ids.push("python", "data_science", "critical_thinking", "ai_literacy");
+    if (top.includes("R")) ids.push("devops", "robotic_automation", "problem_solving");
+    if (top.includes("A")) ids.push("ux_design", "graphic_design", "creativity");
+    if (top.includes("S")) ids.push("communication", "mentoring", "emotional_intel", "teamwork");
+    if (top.includes("E")) ids.push("leadership", "negotiation", "entrepreneurship", "decision_making");
+    if (top.includes("C")) ids.push("sql", "finance_analysis", "time_mgmt");
+  }
+  if (habitsCount >= 3) ids.push("self_management", "learning_agility", "adaptability");
+  return Array.from(new Set(ids));
+}
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
