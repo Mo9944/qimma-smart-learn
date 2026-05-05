@@ -103,6 +103,58 @@ export default function FutureSkillsHub() {
   const [matchAI, setMatchAI] = useState("");
   const [loadingMatch, setLoadingMatch] = useState(false);
 
+  // AI Market Analyzer
+  type AnalyzerCountry = { iso3: string; name: string; nameAr: string; matchPct: number; gaps: string[]; salary: number; demand: number };
+  const [analyzerResults, setAnalyzerResults] = useState<AnalyzerCountry[] | null>(null);
+  const [analyzerStrengths, setAnalyzerStrengths] = useState<string[]>([]);
+  const [analyzerAI, setAnalyzerAI] = useState("");
+  const [loadingAnalyzer, setLoadingAnalyzer] = useState(false);
+
+  const runMarketAnalyzer = async () => {
+    setLoadingAnalyzer(true);
+    setAnalyzerAI("");
+    try {
+      const [{ data: riasec }, { data: habits }] = await Promise.all([
+        supabase.from("riasec_results").select("*").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("habits").select("id"),
+      ]);
+      const userSkillIds = deriveUserSkillIds(riasec, habits?.length || 0);
+      const strengthsAr = userSkillIds.map(id => getSkillById(id)?.nameAr || id);
+      setAnalyzerStrengths(strengthsAr);
+
+      const results: AnalyzerCountry[] = COUNTRIES.map(c => {
+        const required = [...c.topHardSkills, ...c.topSoftSkills];
+        const matched = required.filter(r => userSkillIds.includes(r));
+        const pct = required.length ? Math.round((matched.length / required.length) * 100) : 0;
+        const realPct = Math.max(pct, userSkillIds.length ? 20 : 10);
+        const gaps = required.filter(r => !userSkillIds.includes(r)).slice(0, 5).map(id => getSkillById(id)?.nameAr || id);
+        return { iso3: c.iso3, name: c.name, nameAr: c.nameAr, matchPct: realPct, gaps, salary: c.avgSalaryUsd, demand: c.demandIndex };
+      }).sort((a, b) => b.matchPct - a.matchPct);
+      setAnalyzerResults(results);
+
+      // Ask AI for a strategic recommendation based on top 3 countries
+      const top3 = results.slice(0, 3);
+      const { data, error } = await supabase.functions.invoke("future-insights", {
+        body: {
+          mode: "country_match",
+          payload: {
+            countryName: top3.map(t => t.nameAr).join(" / "),
+            matchPct: top3[0]?.matchPct || 0,
+            userStrengths: strengthsAr.slice(0, 8).length ? strengthsAr.slice(0, 8) : ["لا توجد بيانات كافية"],
+            gaps: Array.from(new Set(top3.flatMap(t => t.gaps))).slice(0, 8),
+          },
+        },
+      });
+      if (error) throw error;
+      setAnalyzerAI(data?.content || "");
+      toast.success("تم تحليل السوق العالمي");
+    } catch (e: any) {
+      toast.error(e.message || "تعذّر التحليل");
+    } finally {
+      setLoadingAnalyzer(false);
+    }
+  };
+
   // Filtered skills
   const filteredSkills = useMemo(() => {
     return FUTURE_SKILLS.filter(s => {
