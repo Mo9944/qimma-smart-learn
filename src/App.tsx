@@ -25,6 +25,8 @@ import BalanceMap from "./pages/BalanceMap";
 import AIMentor from "./pages/AIMentor";
 import FutureSkillsHub from "./pages/FutureSkillsHub";
 import MySkillsMatch from "./pages/MySkillsMatch";
+import IntegratedAnalysis from "./pages/IntegratedAnalysis";
+import MarketNews from "./pages/MarketNews";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
