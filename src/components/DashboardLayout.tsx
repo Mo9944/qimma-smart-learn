@@ -41,6 +41,7 @@ const navGroups: NavGroup[] = [
     id: "future", label: "خريطة المستقبل", icon: Globe,
     items: [
       { icon: Globe, label: "مهارات المستقبل العالمية", path: "/dashboard/future-skills" },
+      { icon: Newspaper, label: "أخبار سوق العمل", path: "/dashboard/market-news", highlight: true },
     ],
   },
   {
