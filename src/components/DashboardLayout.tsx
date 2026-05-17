@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen, Brain, FileText, BarChart3,
   Trophy, Clock, Sparkles, ChevronLeft, Menu, Target, Compass, Route,
-  Repeat, GraduationCap, Search, Radar, Map, Heart, Scale, MessageCircle, Globe,
+  Repeat, GraduationCap, Search, Radar, Map, Heart, Scale, MessageCircle, Globe, Newspaper,
   ChevronDown, User, Briefcase, Wrench, TrendingUp, Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ const navGroups: NavGroup[] = [
   {
     id: "discover", label: "اكتشف نفسك", icon: User,
     items: [
+      { icon: Sparkles, label: "التحليل المتكامل", path: "/dashboard/integrated-analysis", highlight: true },
       { icon: Compass, label: "اختبار الشخصية / RIASEC", path: "/dashboard/riasec" },
       { icon: Heart, label: "التحليل النفسي", path: "/dashboard/psych-insight" },
       { icon: Scale, label: "خريطة التوازن", path: "/dashboard/balance-map" },
@@ -40,6 +41,7 @@ const navGroups: NavGroup[] = [
     id: "future", label: "خريطة المستقبل", icon: Globe,
     items: [
       { icon: Globe, label: "مهارات المستقبل العالمية", path: "/dashboard/future-skills" },
+      { icon: Newspaper, label: "أخبار سوق العمل", path: "/dashboard/market-news", highlight: true },
     ],
   },
   {
