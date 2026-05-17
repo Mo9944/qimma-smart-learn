@@ -21,6 +21,7 @@ const navGroups: NavGroup[] = [
   {
     id: "discover", label: "اكتشف نفسك", icon: User,
     items: [
+      { icon: Sparkles, label: "التحليل المتكامل", path: "/dashboard/integrated-analysis", highlight: true },
       { icon: Compass, label: "اختبار الشخصية / RIASEC", path: "/dashboard/riasec" },
       { icon: Heart, label: "التحليل النفسي", path: "/dashboard/psych-insight" },
       { icon: Scale, label: "خريطة التوازن", path: "/dashboard/balance-map" },
