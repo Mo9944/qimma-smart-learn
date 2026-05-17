@@ -250,6 +250,9 @@ export default function DashboardHome() {
         </motion.div>
       )}
 
+      {/* Global Career Score */}
+      <GlobalCareerScore />
+
       {/* Row: Work Readiness + Weekly Commitment + Learning Hours */}
       <div className="grid md:grid-cols-3 gap-4">
         <WorkReadinessGauge score={readinessScore} />
