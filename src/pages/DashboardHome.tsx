@@ -12,6 +12,7 @@ import SkillsRadar from "@/components/dashboard/SkillsRadar";
 import WeeklyCommitment from "@/components/dashboard/WeeklyCommitment";
 import LearningHoursChart from "@/components/dashboard/LearningHoursChart";
 import ProgressTimeline from "@/components/dashboard/ProgressTimeline";
+import GlobalCareerScore from "@/components/dashboard/GlobalCareerScore";
 
 const typeNames: Record<string, string> = {
   R: "واقعي", I: "بحثي", A: "فني", S: "اجتماعي", E: "مبادر", C: "تقليدي"
